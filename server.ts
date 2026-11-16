@@ -7,9 +7,7 @@ import {
   EventStatus,
   EventType,
   NotificationItem,
-  PaperSubmission,
   Registration,
-  SubmissionStatus,
   UserAccount,
   UserRole,
 } from './src/types';
@@ -22,7 +20,6 @@ interface DatabaseSchema {
   users: StoredUser[];
   events: EventItem[];
   registrations: Registration[];
-  submissions: PaperSubmission[];
   notifications: NotificationItem[];
   pendingVerifications: Record<string, { code: string; user: StoredUser }>;
 }
@@ -133,11 +130,10 @@ function createInitialDb(): DatabaseSchema {
       endTime: '17:30',
       maxSlots: 120,
       registeredCount: 84,
-      eventType: EventType.Simposio,
+      eventType: EventType.Palestra,
       status: EventStatus.EmAndamento,
       institutionalOnly: false,
       generateCertificate: true,
-      acceptSubmissions: true,
       workloadHours: 20,
       eventCode: 'Q87OP',
       createdAt: '2026-10-15T10:00:00.000Z',
@@ -181,7 +177,6 @@ function createInitialDb(): DatabaseSchema {
       status: EventStatus.EmBreve,
       institutionalOnly: false,
       generateCertificate: true,
-      acceptSubmissions: false,
       workloadHours: 2,
       eventCode: null,
       createdAt: '2026-11-01T09:00:00.000Z',
@@ -207,7 +202,6 @@ function createInitialDb(): DatabaseSchema {
       status: EventStatus.EmBreve,
       institutionalOnly: false,
       generateCertificate: true,
-      acceptSubmissions: true,
       workloadHours: 3,
       eventCode: null,
       createdAt: '2026-11-02T14:20:00.000Z',
@@ -233,7 +227,6 @@ function createInitialDb(): DatabaseSchema {
       status: EventStatus.EmBreve,
       institutionalOnly: true,
       generateCertificate: true,
-      acceptSubmissions: false,
       workloadHours: 8,
       eventCode: null,
       createdAt: '2026-11-04T11:10:00.000Z',
@@ -259,7 +252,6 @@ function createInitialDb(): DatabaseSchema {
       status: EventStatus.Finalizado,
       institutionalOnly: false,
       generateCertificate: true,
-      acceptSubmissions: true,
       workloadHours: 12,
       eventCode: 'CED26',
       createdAt: '2026-09-20T08:00:00.000Z',
@@ -285,7 +277,6 @@ function createInitialDb(): DatabaseSchema {
       status: EventStatus.EmBreve,
       institutionalOnly: true,
       generateCertificate: true,
-      acceptSubmissions: false,
       workloadHours: 4,
       eventCode: null,
       createdAt: '2026-11-05T15:00:00.000Z',
@@ -311,7 +302,6 @@ function createInitialDb(): DatabaseSchema {
       status: EventStatus.EmBreve,
       institutionalOnly: false,
       generateCertificate: true,
-      acceptSubmissions: false,
       workloadHours: 4,
       eventCode: null,
       createdAt: '2026-11-08T12:00:00.000Z',
@@ -366,48 +356,6 @@ function createInitialDb(): DatabaseSchema {
     },
   ];
 
-  const submissions: PaperSubmission[] = [
-    {
-      id: 'subm-1',
-      eventId: 'evt-1',
-      eventTitle: 'XI Semana de Tecnologia e Inovação do IFCE Cedro',
-      authorId: 'usr-estudante-1',
-      authorName: 'Ana Beatriz Ferreira',
-      authorEmail: 'ana.ferreira@aluno.ifce.edu.br',
-      coAuthors: 'Prof. Dr. Carlos Eduardo Lima',
-      title: 'Monitoramento Inteligente de Irrigação Agrícola no Semiárido Cearense via IoT',
-      abstract:
-        'Este trabalho apresenta o desenvolvimento e validação em campo de um sistema de baixo custo baseado em microcontroladores ESP32 e sensores de umidade do solo para otimizar o consumo hídrico na agricultura familiar da região Centro-Sul do Ceará.',
-      track: 'Sistemas Embarcados e IoT',
-      keywords: 'IoT; Agricultura Familiar; Eficiência Hídrica; ESP32',
-      fileName: 'artigo_irrigacao_iot_ifce2026.pdf',
-      fileSize: '1.4 MB',
-      status: SubmissionStatus.Aprovado,
-      reviewerFeedback:
-        'Excelente fundamentação metodológica e resultados experimentais consistentes com a realidade regional.',
-      submittedAt: '2026-11-05T16:40:00.000Z',
-      certificateCode: 'SEA-ART-2026-1094',
-    },
-    {
-      id: 'subm-2',
-      eventId: 'evt-5',
-      eventTitle: 'Seminário de Pesquisa, Extensão e Energias Renováveis',
-      authorId: 'usr-externo-1',
-      authorName: 'João Pedro Vasconcelos',
-      authorEmail: 'joao.vasconcelos@gmail.com',
-      coAuthors: 'Profa. Ma. Mariana Albuquerque',
-      title: 'Análise de Desempenho Fotovoltaico em Coberturas Escolares Públicas',
-      abstract:
-        'Avaliação comparativa de geração solar distribuída em edificações públicas municipais utilizando dados telemétricos de 12 meses.',
-      track: 'Energias Renováveis e Sustentabilidade',
-      keywords: 'Energia Solar; Eficiência Energética; Escolas Públicas',
-      fileName: 'analise_fotovoltaica_cedro.pdf',
-      fileSize: '2.1 MB',
-      status: SubmissionStatus.EmAvaliacao,
-      submittedAt: '2026-11-12T09:15:00.000Z',
-    },
-  ];
-
   const notifications: NotificationItem[] = [
     {
       id: 'not-1',
@@ -430,23 +378,12 @@ function createInitialDb(): DatabaseSchema {
       read: false,
       type: 'reminder',
     },
-    {
-      id: 'not-3',
-      category: 'Eventos',
-      senderName: 'Comitê Científico',
-      title: 'Submissão avaliada',
-      message: 'Um artigo submetido recebeu parecer favorável para apresentação oral.',
-      timestamp: '15 de Nov às 18:45',
-      read: true,
-      type: 'info',
-    },
   ];
 
   return {
     users,
     events,
     registrations,
-    submissions,
     notifications,
     pendingVerifications: {},
   };
@@ -463,7 +400,12 @@ function loadDb(): DatabaseSchema {
   }
   try {
     const raw = fs.readFileSync(DB_FILE, 'utf-8');
-    return JSON.parse(raw) as DatabaseSchema;
+    const parsed = JSON.parse(raw) as DatabaseSchema;
+    parsed.events = (parsed.events || []).map((e) => ({
+      ...e,
+      eventType: (e.eventType as string) === 'Simpósio' ? EventType.Palestra : e.eventType,
+    }));
+    return parsed;
   } catch {
     const initial = createInitialDb();
     fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
@@ -507,7 +449,6 @@ async function startServer() {
       users: db.users.map(sanitizeUser),
       events: db.events,
       registrations: db.registrations,
-      submissions: db.submissions,
       notifications: db.notifications,
     });
   });
@@ -746,7 +687,6 @@ async function startServer() {
       status: body.status || EventStatus.EmAndamento,
       institutionalOnly: Boolean(body.institutionalOnly),
       generateCertificate: body.generateCertificate !== false,
-      acceptSubmissions: Boolean(body.acceptSubmissions),
       workloadHours: Number(body.workloadHours) || 4,
       eventCode: null,
       subevents: Array.isArray(body.subevents) ? body.subevents : [],
@@ -987,93 +927,6 @@ async function startServer() {
     }
     saveDb(db);
     res.json({ registration: reg, event: evt });
-  });
-
-  // Submit paper / article
-  app.post('/api/submissions', (req, res) => {
-    const {
-      eventId,
-      authorId,
-      coAuthors,
-      title,
-      abstract,
-      track,
-      keywords,
-      fileName,
-      fileSize,
-    } = req.body as Partial<PaperSubmission>;
-
-    const evt = db.events.find((e) => e.id === eventId);
-    const author = db.users.find((u) => u.id === authorId);
-    if (!evt || !author) {
-      res.status(404).json({ error: 'Evento ou autor não encontrado.' });
-      return;
-    }
-
-    const submission: PaperSubmission = {
-      id: `subm-${Date.now()}`,
-      eventId: evt.id,
-      eventTitle: evt.title,
-      authorId: author.id,
-      authorName: author.name,
-      authorEmail: author.email,
-      coAuthors: (coAuthors || '').trim(),
-      title: (title || '').trim() || 'Artigo sem título',
-      abstract: (abstract || '').trim(),
-      track: (track || '').trim() || 'Tecnologia e Inovação',
-      keywords: (keywords || '').trim() || 'IFCE; Pesquisa',
-      fileName: fileName || 'artigo_submetido.pdf',
-      fileSize: fileSize || '1.2 MB',
-      status: SubmissionStatus.EmAvaliacao,
-      submittedAt: new Date().toISOString(),
-    };
-
-    db.submissions.unshift(submission);
-    db.notifications.unshift({
-      id: `not-${Date.now()}`,
-      category: 'Docentes',
-      senderName: author.name,
-      senderRole: author.roleTitle,
-      title: 'Nova submissão de artigo',
-      message: `Artigo "${submission.title}" submetido para "${evt.title}".`,
-      timestamp: 'Agora mesmo',
-      read: false,
-      type: 'info',
-    });
-    saveDb(db);
-    res.status(201).json({ submission });
-  });
-
-  // Review / update article submission status
-  app.patch('/api/submissions/:id', (req, res) => {
-    const subm = db.submissions.find((s) => s.id === req.params.id);
-    if (!subm) {
-      res.status(404).json({ error: 'Submissão não encontrada.' });
-      return;
-    }
-    const { status, reviewerFeedback } = req.body as {
-      status: SubmissionStatus;
-      reviewerFeedback?: string;
-    };
-    subm.status = status;
-    if (reviewerFeedback !== undefined) {
-      subm.reviewerFeedback = reviewerFeedback;
-    }
-    if (status === SubmissionStatus.Aprovado && !subm.certificateCode) {
-      subm.certificateCode = `SEA-ART-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    }
-    db.notifications.unshift({
-      id: `not-${Date.now()}`,
-      category: 'Eventos',
-      senderName: 'Comitê Científico',
-      title: 'Atualização de artigo',
-      message: `Seu artigo "${subm.title}" foi marcado como "${status}".`,
-      timestamp: 'Agora mesmo',
-      read: false,
-      type: 'info',
-    });
-    saveDb(db);
-    res.json({ submission: subm });
   });
 
   // Mark notifications read

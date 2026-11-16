@@ -3,59 +3,42 @@ import React from 'react';
 export function SeaLogo({
   size = 'md',
   showSubtitle = false,
+  variant = 'default',
 }: {
   size?: 'sm' | 'md' | 'lg';
   showSubtitle?: boolean;
+  variant?: 'default' | 'footer';
 }) {
-  const iconDim =
-    size === 'sm' ? 'w-8 h-8' : size === 'lg' ? 'w-16 h-16' : 'w-10 h-10';
-  const textSize =
-    size === 'sm' ? 'text-xl' : size === 'lg' ? 'text-5xl' : 'text-2xl';
+  if (variant === 'footer') {
+    return (
+      <div className="inline-flex items-center select-none overflow-hidden py-0.5">
+        <img
+          src="/assets/aistudio/SEA__4_-removebg-preview_1_6d590982.png"
+          alt="SEA IFCE — Sistema de eventos acadêmicos"
+          className="h-24 sm:h-28 w-auto object-contain -my-5"
+        />
+      </div>
+    );
+  }
+
+  const imgHeight =
+    size === 'sm'
+      ? 'h-9 sm:h-10'
+      : size === 'lg'
+        ? 'h-24 sm:h-28'
+        : 'h-12';
   const subSize =
     size === 'sm' ? 'text-[9px]' : size === 'lg' ? 'text-xs' : 'text-[10px]';
 
   return (
-    <div className="inline-flex flex-col items-start select-none">
-      <div className="inline-flex items-center gap-2">
-        {/* Graduation cap + circuit/book emblem matching Figma */}
-        <svg
-          viewBox="0 0 64 64"
-          className={`${iconDim} shrink-0`}
-          aria-hidden="true"
-        >
-          <path
-            d="M32 10L6 22l26 12 26-12L32 10z"
-            fill="#1E293B"
-          />
-          <path
-            d="M16 28v13c0 5 7.2 9 16 9s16-4 16-9V28L32 35.5 16 28z"
-            fill="#0EA5E9"
-            opacity="0.9"
-          />
-          <path
-            d="M52 24v16"
-            stroke="#1E293B"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-          <circle cx="52" cy="42" r="3" fill="#22C55E" />
-          <circle cx="24" cy="42" r="2.2" fill="#FFFFFF" />
-          <circle cx="32" cy="44" r="2.2" fill="#FFFFFF" />
-          <circle cx="40" cy="42" r="2.2" fill="#FFFFFF" />
-        </svg>
-        <div className="flex items-baseline gap-1 whitespace-nowrap">
-          <span
-            className={`${textSize} font-display font-extrabold tracking-tight bg-gradient-to-r from-[#34D399] via-[#10B981] to-[#0EA5E9] bg-clip-text text-transparent`}
-          >
-            SEA
-          </span>
-          <span className="text-[11px] font-bold tracking-wider text-[#0284C7]">
-            IFCE
-          </span>
-        </div>
-      </div>
+    <div className="inline-flex flex-col items-center lg:items-start select-none">
+      <img
+        src="/assets/aistudio/1_1_7d50df76.png"
+        alt="SEA IFCE"
+        className={`${imgHeight} w-auto object-contain`}
+      />
       {showSubtitle && (
-        <span className={`${subSize} text-slate-500 mt-1 tracking-tight`}>
+        <span className={`${subSize} text-slate-500 mt-1.5 tracking-tight`}>
           Sistema de eventos acadêmicos
         </span>
       )}

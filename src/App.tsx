@@ -5,9 +5,7 @@ import {
   EventItem,
   EventType,
   NotificationItem,
-  PaperSubmission,
   Registration,
-  SubmissionStatus,
   UserAccount,
 } from './types';
 import { AuthFlow } from './components/AuthFlow';
@@ -19,7 +17,6 @@ import { MyRegistrationsView } from './components/MyRegistrationsView';
 import { MyEventsView } from './components/MyEventsView';
 import { ProfileView } from './components/ProfileView';
 import { SettingsView } from './components/SettingsView';
-import { SubmissionsView } from './components/SubmissionsView';
 import { HelpView } from './components/HelpView';
 import { CertificateModal } from './components/CertificateModal';
 
@@ -30,7 +27,6 @@ export default function App() {
   const [allUsers, setAllUsers] = useState<UserAccount[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [submissions, setSubmissions] = useState<PaperSubmission[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [bootstrapped, setBootstrapped] = useState(false);
 
@@ -42,9 +38,6 @@ export default function App() {
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [settingsTab, setSettingsTab] = useState<'perfil' | 'conta' | 'notificacoes' | 'sobre'>(
     'perfil'
-  );
-  const [preselectedSubmissionEventId, setPreselectedSubmissionEventId] = useState<string | null>(
-    null
   );
   const [certificateModal, setCertificateModal] = useState<CertificateData | null>(null);
   const [toast, setToast] = useState<{ msg: string; kind: 'ok' | 'err' } | null>(null);
@@ -64,7 +57,6 @@ export default function App() {
     setAllUsers(data.users || []);
     setEvents(data.events || []);
     setRegistrations(data.registrations || []);
-    setSubmissions(data.submissions || []);
     setNotifications(data.notifications || []);
     if (data.user) {
       setUser(data.user);
@@ -95,7 +87,6 @@ export default function App() {
   function handleNavigate(nextSection: AppSection, category: EventType | 'all' = 'all') {
     setCategoryFilter(category);
     setEditingEvent(null);
-    setPreselectedSubmissionEventId(null);
     setSection(nextSection);
   }
 
@@ -251,48 +242,6 @@ export default function App() {
     handleLogout();
   }
 
-  async function handleSubmitPaper(payload: {
-    eventId: string;
-    coAuthors: string;
-    title: string;
-    abstract: string;
-    track: string;
-    keywords: string;
-    fileName: string;
-    fileSize: string;
-  }) {
-    if (!user) return;
-    const res = await fetch('/api/submissions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, authorId: user.id }),
-    });
-    if (res.ok) {
-      showToast('Artigo submetido para avaliação do comitê!');
-      await loadBootstrap(user.id);
-    } else {
-      const d = await res.json();
-      showToast(d.error || 'Erro na submissão.', 'err');
-    }
-  }
-
-  async function handleReviewPaper(
-    submissionId: string,
-    status: SubmissionStatus,
-    feedback: string
-  ) {
-    if (!user) return;
-    const res = await fetch(`/api/submissions/${submissionId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, reviewerFeedback: feedback }),
-    });
-    if (res.ok) {
-      showToast(`Parecer registrado: ${status}`);
-      await loadBootstrap(user.id);
-    }
-  }
-
   async function handleMarkNotificationsRead() {
     await fetch('/api/notifications/read', { method: 'POST' });
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
@@ -382,10 +331,6 @@ export default function App() {
               setProfileUserId(orgId);
               setSection('profile');
             }}
-            onGoToSubmission={(evtId) => {
-              setPreselectedSubmissionEventId(evtId);
-              setSection('submissions');
-            }}
           />
         )}
 
@@ -421,18 +366,6 @@ export default function App() {
             onGenerateCode={handleGenerateCode}
             onFinishEvent={handleFinishEvent}
             onTogglePresence={handleTogglePresence}
-          />
-        )}
-
-        {section === 'submissions' && (
-          <SubmissionsView
-            user={user}
-            events={events}
-            submissions={submissions}
-            preselectedEventId={preselectedSubmissionEventId}
-            onSubmitPaper={handleSubmitPaper}
-            onReviewPaper={handleReviewPaper}
-            onOpenCertificate={setCertificateModal}
           />
         )}
 

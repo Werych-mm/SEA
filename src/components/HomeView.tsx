@@ -189,8 +189,7 @@ export function HomeView({
           (e) =>
             e.eventType === EventType.Outros ||
             e.eventType === EventType.Oficina ||
-            e.eventType === EventType.MiniCurso ||
-            e.eventType === EventType.Simposio
+            e.eventType === EventType.MiniCurso
         )
       ).slice(0, 3),
     },

@@ -9,7 +9,6 @@ export enum EventType {
   Oficina = 'Oficina',
   RodaConversa = 'Roda de conversa',
   MiniCurso = 'Mini curso',
-  Simposio = 'Simpósio',
   Outros = 'Outros',
 }
 
@@ -18,13 +17,6 @@ export enum EventStatus {
   EmAndamento = 'Em andamento',
   Finalizado = 'Finalizado',
   Cancelado = 'Cancelado',
-}
-
-export enum SubmissionStatus {
-  EmAvaliacao = 'Em avaliação',
-  Aprovado = 'Aprovado',
-  RevisaoSolicitada = 'Revisão solicitada',
-  Rejeitado = 'Rejeitado',
 }
 
 export interface NotificationPrefs {
@@ -86,7 +78,6 @@ export interface EventItem {
   status: EventStatus;
   institutionalOnly: boolean;
   generateCertificate: boolean;
-  acceptSubmissions: boolean;
   workloadHours: number;
   eventCode: string | null;
   subevents: SubeventItem[];
@@ -103,26 +94,6 @@ export interface Registration {
   certificateCode?: string;
   registeredAt: string;
   checkedInAt?: string;
-}
-
-export interface PaperSubmission {
-  id: string;
-  eventId: string;
-  eventTitle: string;
-  authorId: string;
-  authorName: string;
-  authorEmail: string;
-  coAuthors: string;
-  title: string;
-  abstract: string;
-  track: string;
-  keywords: string;
-  fileName: string;
-  fileSize: string;
-  status: SubmissionStatus;
-  reviewerFeedback?: string;
-  submittedAt: string;
-  certificateCode?: string;
 }
 
 export interface NotificationItem {
@@ -142,7 +113,6 @@ export type AppSection =
   | 'create'
   | 'registrations'
   | 'my-events'
-  | 'submissions'
   | 'profile'
   | 'settings'
   | 'help'

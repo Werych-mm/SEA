@@ -2,5 +2,7 @@
   "name": "SEA IFCE — Sistema de Eventos Acadêmicos",
   "description": "Plataforma do Instituto Federal do Ceará (Campus Cedro) para gestão de eventos acadêmicos, login institucional, submissão de artigos e emissão automática de certificados.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

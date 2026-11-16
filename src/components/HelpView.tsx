@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, CalendarCheck, FileText, Award } from 'lucide-react';
+import { ShieldCheck, CalendarCheck, Award } from 'lucide-react';
 
 export function HelpView() {
   const topics = [
@@ -14,14 +14,9 @@ export function HelpView() {
       desc: 'Durante a realização do evento, o docente organizador gera um código único de 5 dígitos (ex: Q87OP) na aba "Seus eventos". Basta inserir esse código em "Suas inscrições" para confirmar frequência.',
     },
     {
-      icon: FileText,
-      title: 'Submissão e Avaliação de Artigos',
-      desc: 'Em eventos com chamada científica aberta, envie o título, resumo, coautores e o arquivo PDF pela aba "Artigos". Docentes avaliadores emitem pareceres diretamente na plataforma.',
-    },
-    {
       icon: Award,
       title: 'Certificados Automáticos',
-      desc: 'Assim que a presença é confirmada pelo código do evento ou quando um artigo submetido é aprovado, o botão "Gerar certificado" é liberado automaticamente com código de autenticidade verificável.',
+      desc: 'Assim que a presença é confirmada pelo código do evento ou validada pelo organizador, o botão "Gerar certificado" é liberado automaticamente com código de autenticidade verificável.',
     },
   ];
 

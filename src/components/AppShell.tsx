@@ -5,7 +5,6 @@ import {
   Plus,
   CalendarCheck,
   LayoutGrid,
-  FileText,
   HelpCircle,
   Settings,
   ChevronDown,
@@ -85,7 +84,6 @@ export function AppShell({
     { id: 'create', label: 'Criar evento', icon: Plus, visible: canCreateEvents },
     { id: 'registrations', label: 'Suas inscrições', icon: CalendarCheck, visible: true },
     { id: 'my-events', label: 'Seus eventos', icon: LayoutGrid, visible: canCreateEvents },
-    { id: 'submissions', label: 'Artigos', icon: FileText, visible: true },
   ];
 
   const secondaryNav: Array<{
@@ -253,16 +251,8 @@ export function AppShell({
                         action: () => onNavigate('category', EventType.MiniCurso),
                       },
                       {
-                        label: 'Simpósios',
-                        action: () => onNavigate('category', EventType.Simposio),
-                      },
-                      {
                         label: 'Outros',
                         action: () => onNavigate('category', EventType.Outros),
-                      },
-                      {
-                        label: 'Submissão de artigos',
-                        action: () => onNavigate('submissions', 'all'),
                       },
                     ].map((opt) => (
                       <button
@@ -445,9 +435,9 @@ export function AppShell({
         </main>
 
         {/* Institutional Footer (Screenshot 1) */}
-        <footer className="bg-[#DCF6E4] border-t border-[#C4ECD0] px-6 sm:px-10 py-4 mt-12">
+        <footer className="bg-[#DCF6E4] border-t border-[#C4ECD0] px-6 sm:px-10 py-3 mt-12">
           <div className="max-w-[1360px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <SeaLogo size="sm" />
+            <SeaLogo size="sm" variant="footer" />
             <p className="text-xs text-slate-700 text-center">
               © 2026 SEA - IFCE Campus Cedro. Todos os direitos reservados.
             </p>

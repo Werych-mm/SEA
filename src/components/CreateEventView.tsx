@@ -68,9 +68,6 @@ export function CreateEventView({
   const [generateCertificate, setGenerateCertificate] = useState(
     editingEvent?.generateCertificate ?? true
   );
-  const [acceptSubmissions, setAcceptSubmissions] = useState(
-    editingEvent?.acceptSubmissions || false
-  );
 
   // Subevents state matching Screenshot 2
   const [subevents, setSubevents] = useState<SubeventItem[]>(
@@ -173,7 +170,6 @@ export function CreateEventView({
           status: editingEvent?.status || EventStatus.EmAndamento,
           institutionalOnly,
           generateCertificate,
-          acceptSubmissions,
           subevents,
         },
         Boolean(editingEvent)
@@ -430,16 +426,6 @@ export function CreateEventView({
                   className="mt-0.5 w-4 h-4 rounded border-sky-400 text-sky-600 focus:ring-sky-200"
                 />
                 <span>Gerar certificado automaticamente após validação de presença</span>
-              </label>
-
-              <label className="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={acceptSubmissions}
-                  onChange={(e) => setAcceptSubmissions(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-sky-400 text-sky-600 focus:ring-sky-200"
-                />
-                <span>Aceitar submissão de artigos científicos neste evento</span>
               </label>
             </div>
           </div>

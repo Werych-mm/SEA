@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Clock, MapPin, Users, Check, FileText } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Check } from 'lucide-react';
 import { EventItem } from '../types';
 
 interface EventCardProps {
@@ -75,12 +75,6 @@ export function EventCard({
               <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <span className="truncate">{event.location}</span>
             </div>
-            {event.acceptSubmissions && !compact && (
-              <div className="flex items-center gap-1 text-[11px] text-sky-700 font-medium pt-0.5">
-                <FileText className="w-3 h-3 shrink-0" />
-                <span>Aceita submissão de artigos</span>
-              </div>
-            )}
           </div>
         </div>
 

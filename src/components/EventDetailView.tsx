@@ -10,7 +10,6 @@ import {
   Check,
   UserPlus,
   UserCheck,
-  FileText,
   X,
 } from 'lucide-react';
 import { EventItem, EventStatus, Registration, UserAccount, UserRole } from '../types';
@@ -26,7 +25,6 @@ interface EventDetailViewProps {
   onUnregister: (eventId: string, subeventId?: string) => Promise<void>;
   onToggleFollow: (organizerId: string) => Promise<void>;
   onOpenOrganizerProfile: (organizerId: string) => void;
-  onGoToSubmission: (eventId: string) => void;
 }
 
 export function EventDetailView({
@@ -39,7 +37,6 @@ export function EventDetailView({
   onUnregister,
   onToggleFollow,
   onOpenOrganizerProfile,
-  onGoToSubmission,
 }: EventDetailViewProps) {
   const [modal, setModal] = useState<
     null | 'follow' | 'register' | 'unregister'
@@ -220,31 +217,6 @@ export function EventDetailView({
                   {event.description}
                 </p>
               </div>
-
-              {/* Paper Submission Callout if enabled */}
-              {event.acceptSubmissions && (
-                <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50/60 p-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <FileText className="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="text-sm font-bold text-slate-900">
-                        Submissão de artigos científicos aberta
-                      </div>
-                      <p className="text-xs text-slate-600 mt-0.5">
-                        Envie seu trabalho em PDF para avaliação do comitê e garanta certificado de
-                        apresentação.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onGoToSubmission(event.id)}
-                    className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold transition-colors cursor-pointer shrink-0"
-                  >
-                    Submeter artigo
-                  </button>
-                </div>
-              )}
 
               {/* Subevents */}
               {event.subevents.length > 0 && (
