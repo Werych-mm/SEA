@@ -1,0 +1,195 @@
+import React from 'react';
+import {
+  ArrowLeft,
+  Edit3,
+  UserPlus,
+  UserCheck,
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+} from 'lucide-react';
+import { EventItem, EventStatus, UserAccount } from '../types';
+import { formatShortDate } from './EventCard';
+
+interface ProfileViewProps {
+  profileUser: UserAccount;
+  currentUser: UserAccount;
+  events: EventItem[];
+  onBack: () => void;
+  onEditProfile: () => void;
+  onToggleFollow: (targetId: string) => Promise<void>;
+  onOpenEventDetail: (eventId: string) => void;
+}
+
+export function ProfileView({
+  profileUser,
+  currentUser,
+  events,
+  onBack,
+  onEditProfile,
+  onToggleFollow,
+  onOpenEventDetail,
+}: ProfileViewProps) {
+  const isOwn = profileUser.id === currentUser.id;
+  const isFollowing = currentUser.following.includes(profileUser.id);
+
+  const userEvents = profileUser.showCreatedEventsOnProfile
+    ? events.filter(
+        (e) => e.organizerId === profileUser.id && e.status !== EventStatus.Cancelado
+      )
+    : [];
+
+  return (
+    <div className="max-w-5xl mx-auto">
+      <div className="bg-white border border-[#B7ECC6] rounded-3xl p-6 sm:p-8 shadow-xs">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Profile Card (Screenshot 4) */}
+          <div className="lg:col-span-6 bg-white border border-slate-200 rounded-2xl p-6 relative">
+            <button
+              type="button"
+              onClick={onBack}
+              className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 mb-5 cursor-pointer"
+              aria-label="Voltar"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-5">
+              <div className="w-24 h-24 rounded-full bg-[#EBF9EF] border-2 border-[#8CE8A4] overflow-hidden flex items-center justify-center text-3xl font-bold text-emerald-700 shrink-0">
+                {profileUser.avatarUrl ? (
+                  <img
+                    src={profileUser.avatarUrl}
+                    alt={profileUser.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  profileUser.name.charAt(0)
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <h1 className="font-display text-xl font-bold text-slate-900 truncate">
+                  {profileUser.name}
+                </h1>
+                <p className="text-sm text-slate-500 mt-0.5">{profileUser.roleTitle}</p>
+                <div className="text-xs font-semibold text-slate-700 mt-2 tabular-nums">
+                  {profileUser.followers.length} seguidores
+                </div>
+
+                {!isOwn && (
+                  <button
+                    type="button"
+                    onClick={() => onToggleFollow(profileUser.id)}
+                    className={`mt-3 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                      isFollowing
+                        ? 'bg-[#BCEFD0] text-emerald-950'
+                        : 'bg-[#67E38C] hover:bg-[#4ED878] text-emerald-950'
+                    }`}
+                  >
+                    {isFollowing ? (
+                      <>
+                        <UserCheck className="w-3.5 h-3.5" />
+                        Seguindo
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-3.5 h-3.5" />
+                        Seguir
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 bg-slate-100/90 rounded-2xl p-4 text-xs sm:text-sm text-slate-600 leading-relaxed min-h-[110px]">
+              {profileUser.bio || 'Sem biografia cadastrada.'}
+            </div>
+
+            {isOwn && (
+              <div className="mt-5 flex justify-end">
+                <button
+                  type="button"
+                  onClick={onEditProfile}
+                  title="Editar perfil"
+                  className="w-11 h-11 rounded-full bg-[#BCE7FA] hover:bg-[#9cdbf7] text-slate-900 flex items-center justify-center shadow-xs transition-colors cursor-pointer"
+                >
+                  <Edit3 className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Right Events Column (Screenshot 4) */}
+          <div className="lg:col-span-6 space-y-4">
+            <div className="text-center border-b border-[#B7ECC6] pb-3">
+              <h2 className="font-display text-xl font-bold text-slate-900">Eventos</h2>
+            </div>
+
+            <div className="flex items-center justify-between text-xs text-slate-600">
+              <span className="font-medium tabular-nums">
+                • {userEvents.length} eventos totais
+              </span>
+              <span className="text-sky-600 font-semibold">IFCE Campus Cedro</span>
+            </div>
+
+            {userEvents.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-xs text-slate-500">
+                {profileUser.showCreatedEventsOnProfile
+                  ? 'Nenhum evento publicado ainda.'
+                  : 'Este usuário optou por ocultar eventos criados no perfil.'}
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[430px] overflow-y-auto pr-1">
+                {userEvents.map((evt) => (
+                  <div
+                    key={evt.id}
+                    onClick={() => onOpenEventDetail(evt.id)}
+                    className="bg-white border border-slate-200 rounded-2xl p-3 flex gap-3.5 cursor-pointer hover:border-[#7BE495] transition-colors shadow-xs"
+                  >
+                    <div className="relative w-20 h-24 rounded-xl overflow-hidden bg-slate-100 shrink-0">
+                      <img
+                        src={evt.bannerUrl}
+                        alt={evt.title}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                      />
+                      <span className="absolute top-1 left-1 bg-[#B7F2C7] text-emerald-950 text-[9px] font-semibold px-1.5 py-0.5 rounded">
+                        {evt.eventType}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-display font-bold text-sm text-slate-900 truncate">
+                          {evt.title}
+                        </h3>
+                        <div className="mt-1 space-y-0.5 text-xs text-slate-600 tabular-nums">
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="w-3 h-3 text-slate-400" />
+                            <span>{formatShortDate(evt.startDate)}</span>
+                            <span className="text-sky-500">—</span>
+                            <Clock className="w-3 h-3 text-slate-400" />
+                            <span>{evt.startTime}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 truncate">
+                            <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span className="truncate">{evt.location}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right text-[11px] text-slate-500 tabular-nums inline-flex items-center justify-end gap-1">
+                        <Users className="w-3 h-3" />
+                        vagas: {evt.registeredCount}/{evt.maxSlots}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
