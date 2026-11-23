@@ -12,6 +12,7 @@ import {
   Search,
   Bell,
   User,
+  Users,
   X,
   Ban,
 } from 'lucide-react';
@@ -72,7 +73,8 @@ export function AppShell({
     return n.category === notifTab;
   });
 
-  const canCreateEvents = user.role === UserRole.Docente;
+  const isAdmin = user.role === UserRole.Admin;
+  const canCreateEvents = user.role === UserRole.Docente || isAdmin;
 
   const primaryNav: Array<{
     id: AppSection;
@@ -81,6 +83,7 @@ export function AppShell({
     visible: boolean;
   }> = [
     { id: 'home', label: 'Início', icon: Home, visible: true },
+    { id: 'management', label: 'Gerenciamento', icon: Users, visible: isAdmin },
     { id: 'create', label: 'Criar evento', icon: Plus, visible: canCreateEvents },
     { id: 'registrations', label: 'Suas inscrições', icon: CalendarCheck, visible: true },
     { id: 'my-events', label: 'Seus eventos', icon: LayoutGrid, visible: canCreateEvents },

@@ -12,7 +12,7 @@ import {
   Check,
   ChevronLeft,
 } from 'lucide-react';
-import { EventItem, EventStatus, EventType, Registration, UserAccount } from '../types';
+import { EventItem, EventStatus, EventType, Registration, UserAccount, UserRole } from '../types';
 import { EventCard, formatShortDate } from './EventCard';
 
 interface HomeViewProps {
@@ -25,6 +25,9 @@ interface HomeViewProps {
   onOpenCategory: (type: EventType | 'all') => void;
   onOpenDetail: (eventId: string) => void;
   onRegisterClick: (event: EventItem) => void;
+  onEditEvent: (event: EventItem) => void;
+  onSendAnnouncement: (event: EventItem) => void;
+  onDeleteEvent: (event: EventItem) => void;
 }
 
 export function HomeView({
@@ -37,6 +40,9 @@ export function HomeView({
   onOpenCategory,
   onOpenDetail,
   onRegisterClick,
+  onEditEvent,
+  onSendAnnouncement,
+  onDeleteEvent,
 }: HomeViewProps) {
   const [carouselIdx, setCarouselIdx] = useState(1);
   const [onlyAvailable, setOnlyAvailable] = useState(false);
@@ -133,15 +139,22 @@ export function HomeView({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map((evt) => (
-              <EventCard
-                key={evt.id}
-                event={evt}
-                isRegistered={myActiveRegIds.has(evt.id)}
-                onOpenDetail={onOpenDetail}
-                onRegisterClick={onRegisterClick}
-              />
-            ))}
+            {filtered.map((evt) => {
+              const canManage = user.role === UserRole.Admin || evt.organizerId === user.id;
+              return (
+                <EventCard
+                  key={evt.id}
+                  event={evt}
+                  isRegistered={myActiveRegIds.has(evt.id)}
+                  onOpenDetail={onOpenDetail}
+                  onRegisterClick={onRegisterClick}
+                  canManage={canManage}
+                  onEditEvent={onEditEvent}
+                  onSendAnnouncement={onSendAnnouncement}
+                  onDeleteEvent={onDeleteEvent}
+                />
+              );
+            })}
           </div>
         )}
       </div>
@@ -386,15 +399,22 @@ export function HomeView({
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {sec.items.map((evt) => (
-                  <EventCard
-                    key={evt.id}
-                    event={evt}
-                    isRegistered={myActiveRegIds.has(evt.id)}
-                    onOpenDetail={onOpenDetail}
-                    onRegisterClick={onRegisterClick}
-                  />
-                ))}
+                {sec.items.map((evt) => {
+                  const canManage = user.role === UserRole.Admin || evt.organizerId === user.id;
+                  return (
+                    <EventCard
+                      key={evt.id}
+                      event={evt}
+                      isRegistered={myActiveRegIds.has(evt.id)}
+                      onOpenDetail={onOpenDetail}
+                      onRegisterClick={onRegisterClick}
+                      canManage={canManage}
+                      onEditEvent={onEditEvent}
+                      onSendAnnouncement={onSendAnnouncement}
+                      onDeleteEvent={onDeleteEvent}
+                    />
+                  );
+                })}
               </div>
             )}
           </section>

@@ -1,5 +1,15 @@
-import React from 'react';
-import { Calendar, Clock, MapPin, Users, Check } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  Check,
+  MoreHorizontal,
+  Edit3,
+  BellPlus,
+  Trash2,
+} from 'lucide-react';
 import { EventItem } from '../types';
 
 interface EventCardProps {
@@ -8,6 +18,10 @@ interface EventCardProps {
   onOpenDetail: (eventId: string) => void;
   onRegisterClick: (event: EventItem) => void;
   compact?: boolean;
+  canManage?: boolean;
+  onEditEvent?: (event: EventItem) => void;
+  onSendAnnouncement?: (event: EventItem) => void;
+  onDeleteEvent?: (event: EventItem) => void;
 }
 
 export function formatShortDate(isoDate: string): string {
@@ -23,7 +37,25 @@ export function EventCard({
   onOpenDetail,
   onRegisterClick,
   compact = false,
+  canManage = false,
+  onEditEvent,
+  onSendAnnouncement,
+  onDeleteEvent,
 }: EventCardProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [menuOpen]);
+
   const isFull = event.registeredCount >= event.maxSlots;
   const isCancelled = event.status === 'Cancelado';
   const isFinished = event.status === 'Finalizado';
@@ -31,7 +63,7 @@ export function EventCard({
   return (
     <article
       onClick={() => onOpenDetail(event.id)}
-      className={`group bg-white border border-slate-200/90 rounded-2xl p-3 flex gap-3.5 cursor-pointer transition-all duration-150 hover:border-[#7BE495] hover:shadow-md ${
+      className={`group bg-white border border-slate-200/90 rounded-2xl p-3 flex gap-3.5 cursor-pointer transition-all duration-150 hover:border-[#7BE495] hover:shadow-md relative ${
         compact ? 'items-center' : ''
       }`}
     >
@@ -61,6 +93,67 @@ export function EventCard({
             <h3 className="font-display font-semibold text-sm text-slate-900 leading-snug line-clamp-2 group-hover:text-emerald-800 transition-colors">
               {event.title}
             </h3>
+
+            {canManage && (
+              <div
+                ref={menuRef}
+                className="relative shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((prev) => !prev)}
+                  className="p-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
+                  aria-label="Opções do evento"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+
+                {menuOpen && (
+                  <div className="absolute right-0 top-7 w-44 bg-white rounded-2xl shadow-xl border border-slate-100 p-1.5 z-30">
+                    {onEditEvent && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          onEditEvent(event);
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-800 hover:bg-slate-50 cursor-pointer"
+                      >
+                        <span>Editar evento</span>
+                        <Edit3 className="w-3.5 h-3.5 text-slate-600" />
+                      </button>
+                    )}
+                    {onSendAnnouncement && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          onSendAnnouncement(event);
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-800 hover:bg-slate-50 cursor-pointer"
+                      >
+                        <span>Enviar aviso</span>
+                        <BellPlus className="w-3.5 h-3.5 text-slate-600" />
+                      </button>
+                    )}
+                    {onDeleteEvent && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          onDeleteEvent(event);
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-rose-600 hover:bg-rose-50 cursor-pointer"
+                      >
+                        <span>Excluir evento</span>
+                        <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="mt-2 space-y-1 text-xs text-slate-600">

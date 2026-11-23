@@ -14,7 +14,7 @@ import { SeaLogo } from './BrandLogo';
 import { UserAccount, UserRole } from '../types';
 
 interface AuthFlowProps {
-  onAuthenticated: (user: UserAccount) => void;
+  onAuthenticated: (user: UserAccount, token: string) => void;
 }
 
 type AuthStep =
@@ -55,6 +55,7 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
   const [error, setError] = useState<string | null>(null);
 
   const roleLabels: Record<UserRole, string> = {
+    [UserRole.Admin]: 'Admin',
     [UserRole.Docente]: 'Docente',
     [UserRole.Estudante]: 'Estudante',
     [UserRole.Externo]: 'Participante externo',
@@ -79,9 +80,9 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
         setError(data.error || 'Falha ao entrar.');
         return;
       }
-      onAuthenticated(data.user);
+      onAuthenticated(data.user, data.token);
     } catch {
-      setError('Erro de conexão com o servidor institucional.');
+      setError('Erro de conexão com o servidor.');
     } finally {
       setLoading(false);
     }
@@ -91,9 +92,10 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
     setError(null);
     setLoading(true);
     const demoCreds: Record<UserRole, { identifier: string; password: string }> = {
-      [UserRole.Docente]: { identifier: 'carlos.lima@ifce.edu.br', password: '123' },
+      [UserRole.Admin]: { identifier: 'admin@gmail.com', password: '1989' },
+      [UserRole.Docente]: { identifier: 'carlos.lima@gmail.com', password: '123' },
       [UserRole.Estudante]: {
-        identifier: 'ana.ferreira@aluno.ifce.edu.br',
+        identifier: 'ana.ferreira@gmail.com',
         password: '123',
       },
       [UserRole.Externo]: { identifier: 'joao.vasconcelos@gmail.com', password: '123' },
@@ -109,7 +111,7 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
         setError(data.error || 'Erro ao acessar conta de demonstração.');
         return;
       }
-      onAuthenticated(data.user);
+      onAuthenticated(data.user, data.token);
     } catch {
       setError('Erro de conexão.');
     } finally {
@@ -163,6 +165,8 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
     }
   }
 
+  const [authToken, setAuthToken] = useState<string>('');
+
   async function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -184,6 +188,7 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
         return;
       }
       setCreatedUser(data.user);
+      setAuthToken(data.token);
       setStep('reg-done');
     } catch {
       setError('Erro ao verificar código.');
@@ -205,10 +210,10 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
 
   const emailPlaceholder =
     selectedRole === UserRole.Docente
-      ? 'nome.sobrenome@ifce.edu.br'
+      ? 'nome.sobrenome@gmail.com'
       : selectedRole === UserRole.Estudante
-        ? 'nome.sobrenome@aluno.ifce.edu.br'
-        : 'seu.email@exemplo.com';
+        ? 'nome.sobrenome@gmail.com'
+        : 'seu.email@gmail.com';
 
   return (
     <div className="min-h-screen w-full bg-white relative overflow-hidden flex items-center justify-center p-6 lg:p-12">
@@ -241,8 +246,8 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
           <SeaLogo size="lg" showSubtitle />
           <p className="mt-6 max-w-md text-sm text-slate-600 leading-relaxed hidden lg:block">
             Plataforma oficial do <strong className="text-slate-800">IFCE Campus Cedro</strong> para
-            organização de simpósios, palestras, submissão de artigos científicos e emissão
-            automática de certificados verificáveis.
+            organização de palestras, oficinas, minicursos, rodas de conversa e emissão automática
+            de certificados verificáveis.
           </p>
         </div>
 
@@ -270,13 +275,13 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
                   {
                     role: UserRole.Docente,
                     title: 'Docente',
-                    desc: 'Login institucional @ifce.edu.br · Criar eventos e avaliar artigos',
+                    desc: 'Criar e gerenciar eventos · Acesso docente e Admin',
                     icon: GraduationCap,
                   },
                   {
                     role: UserRole.Estudante,
                     title: 'Estudante',
-                    desc: 'Login acadêmico @aluno.ifce.edu.br · Inscrições e submissão',
+                    desc: 'Inscrições em eventos acadêmicos e certificados',
                     icon: BookOpen,
                   },
                   {
@@ -393,7 +398,7 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
 
               <h1 className="font-display text-2xl font-bold text-slate-900 text-center">Login</h1>
               <p className="text-xs text-slate-500 text-center mt-1">
-                Entre com sua conta institucional do IFCE
+                Entre com sua conta do SEA IFCE
               </p>
 
               <div className="mt-6 space-y-4">
@@ -401,7 +406,7 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">
                     {selectedRole === UserRole.Externo
                       ? 'E-mail ou CPF'
-                      : 'E-mail institucional ou Matrícula'}
+                      : 'E-mail ou Matrícula'}
                   </label>
                   <input
                     type="text"
@@ -671,16 +676,13 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
               </button>
               <h2 className="font-display text-xl font-bold text-slate-900 text-center">E-mail</h2>
               <p className="text-xs text-slate-500 text-center mt-1 leading-relaxed">
-                {selectedRole === UserRole.Docente
-                  ? 'Informe seu e-mail institucional (@ifce.edu.br) para validação.'
-                  : selectedRole === UserRole.Estudante
-                    ? 'Informe seu e-mail acadêmico (@aluno.ifce.edu.br) para validação.'
-                    : 'Informe seu e-mail para recebimento de certificados e código de verificação.'}
+                Informe seu e-mail (@gmail.com ou outro válido) para validação e emissão de
+                certificados.
               </p>
 
               <div className="mt-5">
                 <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                  E-mail {selectedRole !== UserRole.Externo ? 'institucional' : ''}
+                  E-mail
                 </label>
                 <input
                   type="email"
@@ -772,7 +774,7 @@ export function AuthFlow({ onAuthenticated }: AuthFlowProps) {
               <button
                 type="button"
                 onClick={() => {
-                  if (createdUser) onAuthenticated(createdUser);
+                  if (createdUser && authToken) onAuthenticated(createdUser, authToken);
                 }}
                 className="mt-6 w-full py-2.5 rounded-xl bg-[#67E38C] hover:bg-[#4ED878] text-emerald-950 font-semibold text-sm transition-colors cursor-pointer"
               >

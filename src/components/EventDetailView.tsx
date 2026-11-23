@@ -291,7 +291,7 @@ export function EventDetailView({
                 </span>
               ) : isRestricted && !isRegisteredMain ? (
                 <span className="px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium">
-                  Exclusivo para login institucional (@ifce.edu.br / @aluno.ifce.edu.br)
+                  Exclusivo para estudantes e docentes cadastrados no IFCE
                 </span>
               ) : (
                 <button

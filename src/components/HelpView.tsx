@@ -5,8 +5,8 @@ export function HelpView() {
   const topics = [
     {
       icon: ShieldCheck,
-      title: 'Autenticação Institucional',
-      desc: 'Docentes acessam com e-mail @ifce.edu.br e estudantes com @aluno.ifce.edu.br. Membros da comunidade externa podem se cadastrar como Participante externo para eventos abertos.',
+      title: 'Acesso e Perfis de Usuário',
+      desc: 'Docentes, estudantes e participantes externos acessam com e-mail (@gmail.com ou outro válido) e senha. Docentes e administradores podem criar eventos e gerenciar presenças.',
     },
     {
       icon: CalendarCheck,

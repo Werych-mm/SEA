@@ -10,6 +10,8 @@ import {
   Check,
   Download,
   CheckCircle2,
+  HelpCircle,
+  X,
 } from 'lucide-react';
 import {
   CertificateData,
@@ -43,6 +45,7 @@ export function MyRegistrationsView({
   const [codeInputs, setCodeInputs] = useState<Record<string, string>>({});
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
   const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [infoModalOpen, setInfoModalOpen] = useState(false);
 
   const myRegs = registrations.filter(
     (r) => r.userId === user.id && r.status !== 'cancelado'
@@ -272,8 +275,16 @@ export function MyRegistrationsView({
 
                 {/* Right Check-in & Certificate Panel (Screenshot 3) */}
                 <div className="lg:w-64 shrink-0 lg:border-l lg:border-slate-200 lg:pl-5 flex flex-col justify-center gap-2.5">
-                  <div className="text-xs font-semibold text-slate-700 text-center">
-                    Código do evento:
+                  <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-700 text-center">
+                    <span>Código de presença:</span>
+                    <button
+                      type="button"
+                      onClick={() => setInfoModalOpen(true)}
+                      title="Como funciona o código de presença"
+                      className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                    </button>
                   </div>
 
                   {reg.status === 'presente' ? (
@@ -341,6 +352,53 @@ export function MyRegistrationsView({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {infoModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 relative border border-slate-100">
+            <button
+              type="button"
+              onClick={() => setInfoModalOpen(false)}
+              className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="font-display font-bold text-lg text-slate-900">Código de presença</h3>
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+              O código de presença é um código único gerado para este evento, que os participantes
+              devem informar para confirmar sua presença.
+            </p>
+
+            <div className="mt-4 pt-4 border-t border-emerald-100">
+              <div className="text-xs font-bold text-slate-900 mb-3">Como funciona?</div>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                {[
+                  {
+                    step: '1',
+                    text: 'O organizador gera e apresenta o código aos participantes.',
+                  },
+                  {
+                    step: '2',
+                    text: 'Acesse "Suas inscrições" no próprio dispositivo e localize o evento.',
+                  },
+                  {
+                    step: '3',
+                    text: 'Informe o código mostrado para confirmar a presença e liberar o certificado.',
+                  },
+                ].map((item) => (
+                  <div key={item.step} className="space-y-2">
+                    <div className="w-6 h-6 rounded-full bg-[#C1F4CC] text-emerald-950 font-bold text-xs flex items-center justify-center mx-auto">
+                      {item.step}
+                    </div>
+                    <p className="text-[11px] text-slate-600 leading-snug">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

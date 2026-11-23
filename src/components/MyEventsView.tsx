@@ -15,6 +15,10 @@ import {
   X,
   CheckCircle2,
   ClipboardList,
+  HelpCircle,
+  Maximize2,
+  MoreHorizontal,
+  BellPlus,
 } from 'lucide-react';
 import { EventItem, EventStatus, Registration, UserAccount } from '../types';
 import { formatShortDate } from './EventCard';
@@ -27,6 +31,7 @@ interface MyEventsViewProps {
   onOpenDetail: (eventId: string) => void;
   onEditEvent: (event: EventItem) => void;
   onCancelEvent: (eventId: string) => Promise<void>;
+  onSendAnnouncement: (event: EventItem) => void;
   onGenerateCode: (eventId: string) => Promise<void>;
   onFinishEvent: (eventId: string) => Promise<void>;
   onTogglePresence: (registrationId: string) => Promise<void>;
@@ -40,6 +45,7 @@ export function MyEventsView({
   onOpenDetail,
   onEditEvent,
   onCancelEvent,
+  onSendAnnouncement,
   onGenerateCode,
   onFinishEvent,
   onTogglePresence,
@@ -48,6 +54,9 @@ export function MyEventsView({
   const [query, setQuery] = useState('');
   const [rosterEventId, setRosterEventId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [infoModalOpen, setInfoModalOpen] = useState(false);
+  const [maximizedCode, setMaximizedCode] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const createdEvents = events.filter((e) => e.organizerId === user.id);
 
@@ -173,7 +182,7 @@ export function MyEventsView({
                         </span>
 
                         {!isCancelled && (
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 relative">
                             <button
                               type="button"
                               onClick={() => onEditEvent(evt)}
@@ -200,6 +209,54 @@ export function MyEventsView({
                             >
                               <Share2 className="w-4 h-4" />
                             </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setOpenMenuId((prev) => (prev === evt.id ? null : evt.id))
+                              }
+                              title="Mais opções"
+                              className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 cursor-pointer"
+                            >
+                              <MoreHorizontal className="w-4 h-4" />
+                            </button>
+
+                            {openMenuId === evt.id && (
+                              <div className="absolute right-0 top-8 w-44 bg-white rounded-2xl shadow-xl border border-slate-100 p-1.5 z-30">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    onEditEvent(evt);
+                                  }}
+                                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-800 hover:bg-slate-50 cursor-pointer"
+                                >
+                                  <span>Editar evento</span>
+                                  <Edit3 className="w-3.5 h-3.5 text-slate-600" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    onSendAnnouncement(evt);
+                                  }}
+                                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-800 hover:bg-slate-50 cursor-pointer"
+                                >
+                                  <span>Enviar aviso</span>
+                                  <BellPlus className="w-3.5 h-3.5 text-slate-600" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOpenMenuId(null);
+                                    onCancelEvent(evt.id);
+                                  }}
+                                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-rose-600 hover:bg-rose-50 cursor-pointer"
+                                >
+                                  <span>Excluir evento</span>
+                                  <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                                </button>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -242,8 +299,16 @@ export function MyEventsView({
 
                 {/* Right Organizer Management Panel */}
                 <div className="lg:w-64 shrink-0 lg:border-l lg:border-slate-200 lg:pl-5 flex flex-col justify-center gap-2">
-                  <div className="text-xs font-semibold text-slate-700 text-center">
-                    Código de presença:
+                  <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-700 text-center">
+                    <span>Código de presença:</span>
+                    <button
+                      type="button"
+                      onClick={() => setInfoModalOpen(true)}
+                      title="Como funciona o código de presença"
+                      className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                    </button>
                   </div>
 
                   {isCancelled ? (
@@ -251,20 +316,37 @@ export function MyEventsView({
                       Evento cancelado
                     </div>
                   ) : evt.eventCode ? (
-                    <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-emerald-200 bg-[#EEFBF2] font-mono text-sm font-bold text-emerald-950">
-                      <span>{evt.eventCode}</span>
+                    <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-emerald-200 bg-[#EEFBF2] font-mono text-sm font-bold text-emerald-950">
                       <button
                         type="button"
-                        onClick={() => handleCopyCode(evt.id, evt.eventCode!)}
-                        className="text-emerald-700 hover:text-emerald-900 cursor-pointer"
-                        title="Copiar código"
+                        onClick={() => setMaximizedCode(evt.eventCode!)}
+                        className="flex-1 text-center tracking-wider hover:text-emerald-700 cursor-pointer"
+                        title="Ampliar código na tela"
                       >
-                        {copiedId === evt.id ? (
-                          <Check className="w-4 h-4" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
+                        {evt.eventCode}
                       </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setMaximizedCode(evt.eventCode!)}
+                          className="text-emerald-700 hover:text-emerald-900 cursor-pointer"
+                          title="Maximizar código"
+                        >
+                          <Maximize2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyCode(evt.id, evt.eventCode!)}
+                          className="text-emerald-700 hover:text-emerald-900 cursor-pointer"
+                          title="Copiar código"
+                        >
+                          {copiedId === evt.id ? (
+                            <Check className="w-4 h-4" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <button
@@ -361,6 +443,78 @@ export function MyEventsView({
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* "infor. codigo de presença" Modal (matches Screenshot 202053) */}
+      {infoModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 relative border border-slate-100">
+            <button
+              type="button"
+              onClick={() => setInfoModalOpen(false)}
+              className="absolute top-4 right-4 p-1 rounded-lg text-slate-400 hover:text-slate-700 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="font-display font-bold text-lg text-slate-900">Código de presença</h3>
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+              O código de presença é um código único gerado para este evento, que os participantes
+              devem informar para confirmar sua presença.
+            </p>
+
+            <div className="mt-4 pt-4 border-t border-emerald-100">
+              <div className="text-xs font-bold text-slate-900 mb-3">Como funciona?</div>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                {[
+                  {
+                    step: '1',
+                    text: 'Gere o código e visualize aos participantes.',
+                  },
+                  {
+                    step: '2',
+                    text: 'Os participantes devem entrar no próprio dispositivo e depois no evento.',
+                  },
+                  {
+                    step: '3',
+                    text: 'Os participantes devem adicionar o código mostrado e confirmar a presença.',
+                  },
+                ].map((item) => (
+                  <div key={item.step} className="space-y-2">
+                    <div className="w-6 h-6 rounded-full bg-[#C1F4CC] text-emerald-950 font-bold text-xs flex items-center justify-center mx-auto">
+                      {item.step}
+                    </div>
+                    <p className="text-[11px] text-slate-600 leading-snug">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* "Maximizar código" Modal (matches Screenshot 202053) */}
+      {maximizedCode && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center relative border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setMaximizedCode(null)}
+              className="absolute top-4 left-4 p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
+              aria-label="Fechar código ampliado"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="border border-slate-200 rounded-2xl py-8 px-6 mt-2 bg-slate-50/50">
+              <div className="font-mono font-extrabold text-4xl sm:text-5xl tracking-[0.28em] text-slate-900 pl-2">
+                {maximizedCode}
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 mt-3">
+              Apresente este código aos participantes para validação de presença.
+            </p>
           </div>
         </div>
       )}

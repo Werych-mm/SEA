@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
@@ -33,18 +34,92 @@ const POSTER_VOZES = '/src/assets/images/poster_vozes_cultura_1794858693933.jpg'
 const POSTER_ROBOTICA = '/src/assets/images/poster_oficina_robotica_1794858694324.jpg';
 const POSTER_EXTENSAO = '/src/assets/images/poster_extensao_pesquisa_1794858694286.jpg';
 
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+
+function hashPassword(plain: string): string {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const derived = crypto.scryptSync(plain, salt, 64).toString('hex');
+  return `scrypt:${salt}:${derived}`;
+}
+
+function verifyPassword(plain: string, stored: string): boolean {
+  if (!stored) return false;
+  if (stored.startsWith('scrypt:')) {
+    const [, salt, hashHex] = stored.split(':');
+    if (!salt || !hashHex) return false;
+    const derived = crypto.scryptSync(plain, salt, 64);
+    const expected = Buffer.from(hashHex, 'hex');
+    if (derived.length !== expected.length) return false;
+    return crypto.timingSafeEqual(derived, expected);
+  }
+  return plain === stored;
+}
+
+function signSessionToken(userId: string): string {
+  const payload = Buffer.from(
+    JSON.stringify({ uid: userId, iat: Date.now() }),
+    'utf-8'
+  ).toString('base64url');
+  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('base64url');
+  return `${payload}.${sig}`;
+}
+
+function verifySessionToken(token: string): string | null {
+  const parts = token.split('.');
+  if (parts.length !== 2) return null;
+  const [payload, sig] = parts;
+  const expectedSig = crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(payload)
+    .digest('base64url');
+  const sigBuf = Buffer.from(sig);
+  const expBuf = Buffer.from(expectedSig);
+  if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString('utf-8')) as {
+      uid?: string;
+    };
+    return parsed.uid || null;
+  } catch {
+    return null;
+  }
+}
+
 function createInitialDb(): DatabaseSchema {
   const users: StoredUser[] = [
     {
+      id: 'usr-admin-1',
+      name: 'Admin',
+      email: 'admin@gmail.com',
+      password: hashPassword('1989'),
+      matriculaOrCpf: 'ADMIN-IFCE-01',
+      birthDate: '1989-01-01',
+      role: UserRole.Admin,
+      roleTitle: 'Admin',
+      bio: 'Administrador geral do Sistema de Eventos Acadêmicos (SEA) do IFCE Campus Cedro. Responsável pela moderação de usuários, eventos e avisos oficiais.',
+      blocked: false,
+      followers: ['usr-docente-1', 'usr-estudante-1'],
+      following: ['usr-docente-1', 'usr-docente-2'],
+      showCreatedEventsOnProfile: true,
+      notificationPrefs: {
+        receiveNotifications: true,
+        eventCreated: true,
+        eventReminder: true,
+      },
+    },
+    {
       id: 'usr-docente-1',
       name: 'Prof. Dr. Carlos Eduardo Lima',
-      email: 'carlos.lima@ifce.edu.br',
-      password: '123',
+      email: 'carlos.lima@gmail.com',
+      password: hashPassword('123'),
       matriculaOrCpf: 'SIAPE 1849201',
       birthDate: '1984-05-14',
       role: UserRole.Docente,
       roleTitle: 'Docente — Sistemas de Informação',
       bio: 'Coordenador de projetos de pesquisa e extensão no IFCE Campus Cedro. Foco em Engenharia de Software, Computação Aplicada e Inclusão Digital no Centro-Sul Cearense.',
+      blocked: false,
       followers: ['usr-estudante-1', 'usr-externo-1'],
       following: ['usr-docente-2'],
       showCreatedEventsOnProfile: true,
@@ -57,13 +132,14 @@ function createInitialDb(): DatabaseSchema {
     {
       id: 'usr-docente-2',
       name: 'Profa. Ma. Mariana Albuquerque',
-      email: 'mariana.albuquerque@ifce.edu.br',
-      password: '123',
+      email: 'mariana.albuquerque@gmail.com',
+      password: hashPassword('123'),
       matriculaOrCpf: 'SIAPE 2190443',
       birthDate: '1989-11-02',
       role: UserRole.Docente,
       roleTitle: 'Docente — Núcleo de Saúde e Humanidades',
       bio: 'Pesquisadora em Saúde Coletiva, Bem-Estar Estudantil e Ações Afirmativas no IFCE Campus Cedro.',
+      blocked: false,
       followers: ['usr-docente-1', 'usr-estudante-1'],
       following: ['usr-docente-1'],
       showCreatedEventsOnProfile: true,
@@ -76,13 +152,14 @@ function createInitialDb(): DatabaseSchema {
     {
       id: 'usr-estudante-1',
       name: 'Ana Beatriz Ferreira',
-      email: 'ana.ferreira@aluno.ifce.edu.br',
-      password: '123',
+      email: 'ana.ferreira@gmail.com',
+      password: hashPassword('123'),
       matriculaOrCpf: '20241030400125',
       birthDate: '2004-03-22',
       role: UserRole.Estudante,
       roleTitle: 'Estudante — Bacharelado em Sistemas de Informação',
       bio: 'Graduanda em Sistemas de Informação e bolsista de Iniciação Científica (PIBIC/IFCE). Entusiasta de IA aplicada à educação.',
+      blocked: false,
       followers: [],
       following: ['usr-docente-1', 'usr-docente-2'],
       showCreatedEventsOnProfile: true,
@@ -96,12 +173,13 @@ function createInitialDb(): DatabaseSchema {
       id: 'usr-externo-1',
       name: 'João Pedro Vasconcelos',
       email: 'joao.vasconcelos@gmail.com',
-      password: '123',
+      password: hashPassword('123'),
       matriculaOrCpf: '048.392.113-90',
       birthDate: '1999-08-19',
       role: UserRole.Externo,
       roleTitle: 'Participante Externo — Comunidade Regional',
-      bio: 'Desenvolvedor full-stack egresso e participante ativo dos simpósios e minicursos abertos à comunidade no Campus Cedro.',
+      bio: 'Desenvolvedor full-stack egresso e participante ativo dos minicursos e eventos abertos à comunidade no Campus Cedro.',
+      blocked: false,
       followers: [],
       following: ['usr-docente-1'],
       showCreatedEventsOnProfile: false,
@@ -401,10 +479,47 @@ function loadDb(): DatabaseSchema {
   try {
     const raw = fs.readFileSync(DB_FILE, 'utf-8');
     const parsed = JSON.parse(raw) as DatabaseSchema;
-    parsed.events = (parsed.events || []).map((e) => ({
-      ...e,
-      eventType: (e.eventType as string) === 'Simpósio' ? EventType.Palestra : e.eventType,
-    }));
+    let changed = false;
+
+    parsed.events = (parsed.events || []).map((e) => {
+      if ((e.eventType as string) === 'Simpósio') {
+        changed = true;
+        return { ...e, eventType: EventType.Palestra };
+      }
+      return e;
+    });
+
+    parsed.users = (parsed.users || []).map((u) => {
+      const next = { ...u };
+      if (next.email.endsWith('@ifce.edu.br')) {
+        next.email = next.email.replace(/@ifce\.edu\.br$/i, '@gmail.com');
+        changed = true;
+      } else if (next.email.endsWith('@aluno.ifce.edu.br')) {
+        next.email = next.email.replace(/@aluno\.ifce\.edu\.br$/i, '@gmail.com');
+        changed = true;
+      }
+      if (next.password && !next.password.startsWith('scrypt:')) {
+        next.password = hashPassword(next.password);
+        changed = true;
+      }
+      if (next.blocked === undefined) {
+        next.blocked = false;
+        changed = true;
+      }
+      return next;
+    });
+
+    if (!parsed.users.some((u) => u.email.toLowerCase() === 'admin@gmail.com')) {
+      const initialAdmin = createInitialDb().users.find((u) => u.id === 'usr-admin-1');
+      if (initialAdmin) {
+        parsed.users.unshift(initialAdmin);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      fs.writeFileSync(DB_FILE, JSON.stringify(parsed, null, 2), 'utf-8');
+    }
     return parsed;
   } catch {
     const initial = createInitialDb();
@@ -440,10 +555,22 @@ async function startServer() {
 
   let db = loadDb();
 
-  // Bootstrap all application data
+  function getAuthUser(req: express.Request): StoredUser | undefined {
+    const authHeader = req.header('authorization') || '';
+    if (authHeader.startsWith('Bearer ')) {
+      const token = authHeader.slice(7).trim();
+      const uid = verifySessionToken(token);
+      if (uid) {
+        const found = db.users.find((u) => u.id === uid && !u.blocked);
+        if (found) return found;
+      }
+    }
+    return undefined;
+  }
+
+  // Bootstrap application data
   app.get('/api/bootstrap', (req, res) => {
-    const userId = req.header('x-user-id') || (req.query.userId as string | undefined);
-    const currentUser = userId ? db.users.find((u) => u.id === userId) : undefined;
+    const currentUser = getAuthUser(req);
     res.json({
       user: currentUser ? sanitizeUser(currentUser) : null,
       users: db.users.map(sanitizeUser),
@@ -453,7 +580,7 @@ async function startServer() {
     });
   });
 
-  // Institutional & external login
+  // Login (Admin enters via Docente selector with admin@gmail.com / 1989)
   app.post('/api/auth/login', (req, res) => {
     const { identifier, password, expectedRole } = req.body as {
       identifier: string;
@@ -467,24 +594,37 @@ async function startServer() {
         u.matriculaOrCpf.toLowerCase() === normalized
     );
 
-    if (!user || user.password !== password) {
+    if (!user || !verifyPassword(password || '', user.password)) {
       res.status(401).json({
-        error: 'Credenciais inválidas. Verifique seu e-mail institucional/matrícula e senha.',
+        error: 'Credenciais inválidas. Verifique seu e-mail/matrícula e senha.',
       });
       return;
     }
 
-    if (expectedRole && user.role !== expectedRole) {
+    if (user.blocked) {
+      res.status(403).json({
+        error: 'Esta conta está suspensa pela administração do SEA.',
+      });
+      return;
+    }
+
+    const roleMatches =
+      !expectedRole ||
+      user.role === expectedRole ||
+      (user.role === UserRole.Admin && expectedRole === UserRole.Docente);
+
+    if (!roleMatches) {
       res.status(403).json({
         error: `Esta conta pertence ao perfil "${user.role}". Selecione o perfil correspondente ou entre com outro e-mail.`,
       });
       return;
     }
 
-    res.json({ user: sanitizeUser(user) });
+    const token = signSessionToken(user.id);
+    res.json({ user: sanitizeUser(user), token });
   });
 
-  // Multi-step registration: request 5-digit verification code
+  // Multi-step registration: any valid email (Gmail / personal / academic)
   app.post('/api/auth/register', (req, res) => {
     const {
       name,
@@ -503,20 +643,14 @@ async function startServer() {
       return;
     }
 
-    const emailLower = email.trim().toLowerCase();
-    if (role === UserRole.Docente && !emailLower.endsWith('@ifce.edu.br')) {
-      res.status(400).json({
-        error: 'Docentes devem utilizar o e-mail institucional (@ifce.edu.br).',
-      });
+    if (role === UserRole.Admin) {
+      res.status(403).json({ error: 'Não é permitido cadastrar conta administrativa por esta rota.' });
       return;
     }
-    if (
-      role === UserRole.Estudante &&
-      !(emailLower.endsWith('@aluno.ifce.edu.br') || emailLower.endsWith('@ifce.edu.br'))
-    ) {
-      res.status(400).json({
-        error: 'Estudantes devem utilizar o e-mail acadêmico (@aluno.ifce.edu.br).',
-      });
+
+    const emailLower = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailLower)) {
+      res.status(400).json({ error: 'Informe um endereço de e-mail válido.' });
       return;
     }
 
@@ -530,7 +664,7 @@ async function startServer() {
       id: `usr-${Date.now()}`,
       name: name.trim(),
       email: email.trim(),
-      password,
+      password: hashPassword(password),
       matriculaOrCpf: (matriculaOrCpf || '').trim() || 'Não informado',
       birthDate: birthDate || '2000-01-01',
       role,
@@ -543,6 +677,7 @@ async function startServer() {
             : 'Participante Externo'),
       bio: (bio || '').trim() || 'Membro da comunidade acadêmica do SEA IFCE.',
       avatarUrl,
+      blocked: false,
       followers: [],
       following: [],
       showCreatedEventsOnProfile: true,
@@ -580,11 +715,23 @@ async function startServer() {
     db.users.push(pending.user);
     delete db.pendingVerifications[emailLower];
     saveDb(db);
-    res.json({ user: sanitizeUser(pending.user) });
+    const token = signSessionToken(pending.user.id);
+    res.json({ user: sanitizeUser(pending.user), token });
   });
 
-  // Update profile / account / notification settings
+  // Update profile / account / notification settings / admin moderation
   app.put('/api/users/:id', (req, res) => {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
+    const isAdmin = authUser.role === UserRole.Admin;
+    if (authUser.id !== req.params.id && !isAdmin) {
+      res.status(403).json({ error: 'Sem permissão para editar este usuário.' });
+      return;
+    }
+
     const user = db.users.find((u) => u.id === req.params.id);
     if (!user) {
       res.status(404).json({ error: 'Usuário não encontrado.' });
@@ -598,6 +745,8 @@ async function startServer() {
       email,
       password,
       role,
+      matriculaOrCpf,
+      blocked,
       avatarUrl,
       showCreatedEventsOnProfile,
       notificationPrefs,
@@ -607,8 +756,22 @@ async function startServer() {
     if (roleTitle !== undefined) user.roleTitle = roleTitle;
     if (bio !== undefined) user.bio = bio;
     if (email !== undefined) user.email = email;
-    if (password && password.trim().length > 0) user.password = password;
-    if (role !== undefined) user.role = role;
+    if (matriculaOrCpf !== undefined) user.matriculaOrCpf = matriculaOrCpf;
+    if (password && password.trim().length > 0) user.password = hashPassword(password.trim());
+    if (role !== undefined) {
+      if (role === UserRole.Admin && !isAdmin) {
+        res.status(403).json({ error: 'Apenas administradores podem atribuir perfil Admin.' });
+        return;
+      }
+      user.role = role;
+    }
+    if (blocked !== undefined && isAdmin) {
+      if (user.id === authUser.id && blocked) {
+        res.status(400).json({ error: 'Não é possível bloquear sua própria conta.' });
+        return;
+      }
+      user.blocked = Boolean(blocked);
+    }
     if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
     if (showCreatedEventsOnProfile !== undefined) {
       user.showCreatedEventsOnProfile = showCreatedEventsOnProfile;
@@ -622,6 +785,21 @@ async function startServer() {
   });
 
   app.delete('/api/users/:id', (req, res) => {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
+    const isAdmin = authUser.role === UserRole.Admin;
+    if (authUser.id !== req.params.id && !isAdmin) {
+      res.status(403).json({ error: 'Sem permissão para excluir este usuário.' });
+      return;
+    }
+    if (isAdmin && authUser.id === req.params.id && req.query.adminAction === 'true') {
+      res.status(400).json({ error: 'Não é possível excluir a conta administrativa ativa por aqui.' });
+      return;
+    }
+
     const idx = db.users.findIndex((u) => u.id === req.params.id);
     if (idx === -1) {
       res.status(404).json({ error: 'Usuário não encontrado.' });
@@ -635,44 +813,52 @@ async function startServer() {
 
   // Follow / unfollow organizer
   app.post('/api/users/:id/follow', (req, res) => {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
     const target = db.users.find((u) => u.id === req.params.id);
-    const { followerId } = req.body as { followerId: string };
-    const follower = db.users.find((u) => u.id === followerId);
-    if (!target || !follower) {
+    if (!target) {
       res.status(404).json({ error: 'Usuário não encontrado.' });
       return;
     }
 
+    const followerId = authUser.id;
     const isFollowing = target.followers.includes(followerId);
     if (isFollowing) {
       target.followers = target.followers.filter((id) => id !== followerId);
-      follower.following = follower.following.filter((id) => id !== target.id);
+      authUser.following = authUser.following.filter((id) => id !== target.id);
     } else {
       target.followers.push(followerId);
-      follower.following.push(target.id);
+      authUser.following.push(target.id);
     }
     saveDb(db);
     res.json({
       following: !isFollowing,
       target: sanitizeUser(target),
-      follower: sanitizeUser(follower),
+      follower: sanitizeUser(authUser),
     });
   });
 
   // Create event
   app.post('/api/events', (req, res) => {
-    const body = req.body as Partial<EventItem> & { organizerId: string };
-    const organizer = db.users.find((u) => u.id === body.organizerId);
-    if (!organizer) {
-      res.status(404).json({ error: 'Organizador não encontrado.' });
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
+    if (authUser.role !== UserRole.Docente && authUser.role !== UserRole.Admin) {
+      res.status(403).json({ error: 'Apenas docentes e administradores podem criar eventos.' });
       return;
     }
 
+    const body = req.body as Partial<EventItem>;
     const newEvent: EventItem = {
       id: `evt-${Date.now()}`,
-      organizerId: organizer.id,
-      organizerName: organizer.name,
-      organizerRoleTitle: organizer.roleTitle,
+      organizerId: authUser.id,
+      organizerName: authUser.name,
+      organizerRoleTitle: authUser.roleTitle,
       title: body.title?.trim() || 'Novo Evento Acadêmico',
       description: body.description?.trim() || 'Evento acadêmico do IFCE Campus Cedro.',
       bannerUrl: body.bannerUrl || POSTER_TECH,
@@ -697,8 +883,8 @@ async function startServer() {
     db.notifications.unshift({
       id: `not-${Date.now()}`,
       category: 'Eventos',
-      senderName: organizer.name,
-      senderRole: organizer.roleTitle,
+      senderName: authUser.name,
+      senderRole: authUser.roleTitle,
       title: 'Novo evento publicado',
       message: `O evento "${newEvent.title}" já está aberto para inscrições.`,
       timestamp: 'Agora mesmo',
@@ -711,30 +897,99 @@ async function startServer() {
 
   // Update event
   app.put('/api/events/:id', (req, res) => {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
     const evt = db.events.find((e) => e.id === req.params.id);
     if (!evt) {
       res.status(404).json({ error: 'Evento não encontrado.' });
       return;
     }
-    Object.assign(evt, req.body);
+    if (authUser.role !== UserRole.Admin && evt.organizerId !== authUser.id) {
+      res.status(403).json({ error: 'Sem permissão para editar este evento.' });
+      return;
+    }
+
+    const { id: _ignoreId, organizerId: _ignoreOrg, ...allowedUpdates } =
+      req.body as Partial<EventItem>;
+    Object.assign(evt, allowedUpdates);
     saveDb(db);
     res.json({ event: evt });
   });
 
-  // Delete / Cancel event
-  app.delete('/api/events/:id', (req, res) => {
+  // Send announcement for event ("Enviar aviso")
+  app.post('/api/events/:id/announce', (req, res) => {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
     const evt = db.events.find((e) => e.id === req.params.id);
     if (!evt) {
       res.status(404).json({ error: 'Evento não encontrado.' });
       return;
     }
+    if (authUser.role !== UserRole.Admin && evt.organizerId !== authUser.id) {
+      res.status(403).json({ error: 'Sem permissão para enviar avisos deste evento.' });
+      return;
+    }
+    const { message } = req.body as { message?: string };
+    if (!message || !message.trim()) {
+      res.status(400).json({ error: 'Escreva a mensagem do aviso.' });
+      return;
+    }
+
+    const notification: NotificationItem = {
+      id: `not-${Date.now()}`,
+      category: 'Docentes',
+      senderName: authUser.name,
+      senderRole: authUser.role === UserRole.Admin ? 'Admin' : 'Docente',
+      title: evt.title,
+      message: message.trim(),
+      timestamp: 'Agora mesmo',
+      read: false,
+      type: 'info',
+    };
+    db.notifications.unshift(notification);
+    saveDb(db);
+    res.status(201).json({ notification });
+  });
+
+  // Delete or Cancel event
+  app.delete('/api/events/:id', (req, res) => {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
+    const idx = db.events.findIndex((e) => e.id === req.params.id);
+    if (idx === -1) {
+      res.status(404).json({ error: 'Evento não encontrado.' });
+      return;
+    }
+    const evt = db.events[idx];
+    if (authUser.role !== UserRole.Admin && evt.organizerId !== authUser.id) {
+      res.status(403).json({ error: 'Sem permissão para remover este evento.' });
+      return;
+    }
+
+    if (req.query.hard === 'true') {
+      db.events.splice(idx, 1);
+      db.registrations = db.registrations.filter((r) => r.eventId !== evt.id);
+      saveDb(db);
+      res.json({ deleted: true });
+      return;
+    }
+
     evt.status = EventStatus.Cancelado;
     db.notifications.unshift({
       id: `not-${Date.now()}`,
       category: 'Eventos',
-      senderName: evt.organizerName,
+      senderName: authUser.name,
       title: 'Evento cancelado',
-      message: `O evento "${evt.title}" foi cancelado pelo organizador.`,
+      message: `O evento "${evt.title}" foi cancelado.`,
       timestamp: 'Agora mesmo',
       read: false,
       type: 'alert',
@@ -745,9 +1000,18 @@ async function startServer() {
 
   // Generate check-in attendance code
   app.post('/api/events/:id/generate-code', (req, res) => {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
     const evt = db.events.find((e) => e.id === req.params.id);
     if (!evt) {
       res.status(404).json({ error: 'Evento não encontrado.' });
+      return;
+    }
+    if (authUser.role !== UserRole.Admin && evt.organizerId !== authUser.id) {
+      res.status(403).json({ error: 'Sem permissão para gerar código deste evento.' });
       return;
     }
     if (!evt.eventCode) {
@@ -760,9 +1024,18 @@ async function startServer() {
 
   // Finish event
   app.post('/api/events/:id/finish', (req, res) => {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
     const evt = db.events.find((e) => e.id === req.params.id);
     if (!evt) {
       res.status(404).json({ error: 'Evento não encontrado.' });
+      return;
+    }
+    if (authUser.role !== UserRole.Admin && evt.organizerId !== authUser.id) {
+      res.status(403).json({ error: 'Sem permissão para finalizar este evento.' });
       return;
     }
     if (!evt.eventCode) {
@@ -775,17 +1048,21 @@ async function startServer() {
 
   // Register in event (or subevent)
   app.post('/api/events/:id/register', (req, res) => {
-    const { userId, subeventId } = req.body as { userId: string; subeventId?: string };
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
+    const { subeventId } = req.body as { subeventId?: string };
     const evt = db.events.find((e) => e.id === req.params.id);
-    const user = db.users.find((u) => u.id === userId);
-    if (!evt || !user) {
-      res.status(404).json({ error: 'Evento ou usuário não encontrado.' });
+    if (!evt) {
+      res.status(404).json({ error: 'Evento não encontrado.' });
       return;
     }
 
-    if (evt.institutionalOnly && user.role === UserRole.Externo) {
+    if (evt.institutionalOnly && authUser.role === UserRole.Externo) {
       res.status(403).json({
-        error: 'Este evento é exclusivo para estudantes e docentes com login institucional do IFCE.',
+        error: 'Este evento é exclusivo para estudantes e docentes cadastrados no IFCE.',
       });
       return;
     }
@@ -793,7 +1070,7 @@ async function startServer() {
     const existing = db.registrations.find(
       (r) =>
         r.eventId === evt.id &&
-        r.userId === userId &&
+        r.userId === authUser.id &&
         (r.subeventId || undefined) === (subeventId || undefined) &&
         r.status !== 'cancelado'
     );
@@ -825,7 +1102,7 @@ async function startServer() {
       id: `reg-${Date.now()}`,
       eventId: evt.id,
       subeventId,
-      userId,
+      userId: authUser.id,
       status: 'cadastrado',
       registeredAt: new Date().toISOString(),
     };
@@ -836,17 +1113,21 @@ async function startServer() {
 
   // Unregister from event
   app.delete('/api/events/:id/register', (req, res) => {
-    const userId = req.header('x-user-id') || (req.query.userId as string);
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
     const subeventId = req.query.subeventId as string | undefined;
     const evt = db.events.find((e) => e.id === req.params.id);
-    if (!evt || !userId) {
+    if (!evt) {
       res.status(404).json({ error: 'Inscrição não encontrada.' });
       return;
     }
     const idx = db.registrations.findIndex(
       (r) =>
         r.eventId === evt.id &&
-        r.userId === userId &&
+        r.userId === authUser.id &&
         (r.subeventId || undefined) === (subeventId || undefined) &&
         r.status !== 'cancelado'
     );
@@ -867,9 +1148,18 @@ async function startServer() {
 
   // Participant validates attendance using event code -> auto-generates certificate code
   app.post('/api/registrations/:id/checkin', (req, res) => {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
     const reg = db.registrations.find((r) => r.id === req.params.id);
     if (!reg) {
       res.status(404).json({ error: 'Inscrição não encontrada.' });
+      return;
+    }
+    if (reg.userId !== authUser.id && authUser.role !== UserRole.Admin) {
+      res.status(403).json({ error: 'Sem permissão para validar esta inscrição.' });
       return;
     }
     const evt = db.events.find((e) => e.id === reg.eventId);
@@ -899,8 +1189,13 @@ async function startServer() {
     res.json({ registration: reg });
   });
 
-  // Organizer toggles attendee presence directly
+  // Organizer or Admin toggles attendee presence directly
   app.post('/api/registrations/:id/toggle-presence', (req, res) => {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
     const reg = db.registrations.find((r) => r.id === req.params.id);
     if (!reg) {
       res.status(404).json({ error: 'Inscrição não encontrada.' });
@@ -909,6 +1204,10 @@ async function startServer() {
     const evt = db.events.find((e) => e.id === reg.eventId);
     if (!evt) {
       res.status(404).json({ error: 'Evento não encontrado.' });
+      return;
+    }
+    if (authUser.role !== UserRole.Admin && evt.organizerId !== authUser.id) {
+      res.status(403).json({ error: 'Sem permissão para alterar presença neste evento.' });
       return;
     }
 
@@ -930,7 +1229,12 @@ async function startServer() {
   });
 
   // Mark notifications read
-  app.post('/api/notifications/read', (_req, res) => {
+  app.post('/api/notifications/read', (req, res) => {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: 'Autenticação necessária.' });
+      return;
+    }
     db.notifications.forEach((n) => {
       n.read = true;
     });

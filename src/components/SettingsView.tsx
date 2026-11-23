@@ -338,7 +338,7 @@ export function SettingsView({
                 <div>
                   <h2 className="font-display text-2xl font-bold text-slate-900">Conta</h2>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Email institucional, senha e tipo de usuário.
+                    E-mail, senha e tipo de usuário.
                   </p>
                 </div>
 
@@ -375,9 +375,13 @@ export function SettingsView({
                     </label>
                     <select
                       value={role}
+                      disabled={user.role === UserRole.Admin}
                       onChange={(e) => setRole(e.target.value as UserRole)}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm bg-white"
+                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm bg-white disabled:bg-slate-50"
                     >
+                      {user.role === UserRole.Admin && (
+                        <option value={UserRole.Admin}>Admin</option>
+                      )}
                       <option value={UserRole.Docente}>Docente</option>
                       <option value={UserRole.Estudante}>Estudante</option>
                       <option value={UserRole.Externo}>Participante externo</option>
@@ -509,12 +513,12 @@ export function SettingsView({
                     {
                       id: 'privacidade',
                       title: 'Política de privacidade',
-                      body: 'Seus dados institucionais são utilizados exclusivamente para gestão de inscrições, submissões de artigos científicos e emissão de certificados digitais autenticados pelo IFCE Campus Cedro.',
+                      body: 'Seus dados cadastrais são utilizados exclusivamente para gestão de inscrições, controle de frequência e emissão de certificados digitais autenticados pelo IFCE Campus Cedro.',
                     },
                     {
                       id: 'termos',
                       title: 'Termos de uso',
-                      body: 'A emissão de certificados depende da validação de presença pelo código do evento gerado pela coordenação organizadora ou aprovação de artigo científico.',
+                      body: 'A emissão de certificados depende da validação de presença pelo código do evento gerado pela coordenação organizadora.',
                     },
                   ].map((item) => (
                     <div key={item.id}>

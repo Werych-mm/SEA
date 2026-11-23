@@ -1,4 +1,5 @@
 export enum UserRole {
+  Admin = 'admin',
   Docente = 'docente',
   Estudante = 'estudante',
   Externo = 'externo',
@@ -35,6 +36,7 @@ export interface UserAccount {
   roleTitle: string;
   bio: string;
   avatarUrl?: string;
+  blocked?: boolean;
   followers: string[];
   following: string[];
   showCreatedEventsOnProfile: boolean;
@@ -110,6 +112,7 @@ export interface NotificationItem {
 
 export type AppSection =
   | 'home'
+  | 'management'
   | 'create'
   | 'registrations'
   | 'my-events'

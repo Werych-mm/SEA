@@ -1,0 +1,407 @@
+{
+  "users": [
+    {
+      "id": "usr-admin-1",
+      "name": "Admin",
+      "email": "admin@gmail.com",
+      "password": "scrypt:727a4ecbd1c60f5e78ba908e22bffa9d:121f9892219a22069d271489da11b206e035a873d411317de33f996910cca77bc3c60a856c629edb0664781159217d7e1c008da69c67ac5a1602bb556cf731b3",
+      "matriculaOrCpf": "ADMIN-IFCE-01",
+      "birthDate": "1989-01-01",
+      "role": "admin",
+      "roleTitle": "Admin",
+      "bio": "Administrador geral do Sistema de Eventos Acadêmicos (SEA) do IFCE Campus Cedro. Responsável pela moderação de usuários, eventos e avisos oficiais.",
+      "blocked": false,
+      "followers": [
+        "usr-docente-1",
+        "usr-estudante-1"
+      ],
+      "following": [
+        "usr-docente-1",
+        "usr-docente-2"
+      ],
+      "showCreatedEventsOnProfile": true,
+      "notificationPrefs": {
+        "receiveNotifications": true,
+        "eventCreated": true,
+        "eventReminder": true
+      }
+    },
+    {
+      "id": "usr-docente-1",
+      "name": "Prof. Dr. Carlos Eduardo Lima",
+      "email": "carlos.lima@gmail.com",
+      "password": "scrypt:c0143c426f7c2c1884c6ab73c4af8411:a2e30f7d85aa2294ba4b0dea84fcf62e0996944ea7f9a69266fdf1e088a19485508ebc47de16b50703d306cd2604078b967236cbd52822cbd23e7955d52fd270",
+      "matriculaOrCpf": "SIAPE 1849201",
+      "birthDate": "1984-05-14",
+      "role": "docente",
+      "roleTitle": "Docente — Sistemas de Informação",
+      "bio": "Coordenador de projetos de pesquisa e extensão no IFCE Campus Cedro. Foco em Engenharia de Software, Computação Aplicada e Inclusão Digital no Centro-Sul Cearense.",
+      "followers": [
+        "usr-estudante-1",
+        "usr-externo-1"
+      ],
+      "following": [
+        "usr-docente-2"
+      ],
+      "showCreatedEventsOnProfile": true,
+      "notificationPrefs": {
+        "receiveNotifications": true,
+        "eventCreated": true,
+        "eventReminder": true
+      },
+      "blocked": false
+    },
+    {
+      "id": "usr-docente-2",
+      "name": "Profa. Ma. Mariana Albuquerque",
+      "email": "mariana.albuquerque@gmail.com",
+      "password": "scrypt:48d312b64f3ec556fc10c2243173ca6c:75e922624839f46f3a69d6c919f1efd62432033c5b50ff0f21b4a64d4efd69b1aa8312fcc4760d7346ae78a9e93e2314c66fcdd8ff7a642fc732db23b3ee5c03",
+      "matriculaOrCpf": "SIAPE 2190443",
+      "birthDate": "1989-11-02",
+      "role": "docente",
+      "roleTitle": "Docente — Núcleo de Saúde e Humanidades",
+      "bio": "Pesquisadora em Saúde Coletiva, Bem-Estar Estudantil e Ações Afirmativas no IFCE Campus Cedro.",
+      "followers": [
+        "usr-docente-1",
+        "usr-estudante-1"
+      ],
+      "following": [
+        "usr-docente-1"
+      ],
+      "showCreatedEventsOnProfile": true,
+      "notificationPrefs": {
+        "receiveNotifications": true,
+        "eventCreated": true,
+        "eventReminder": true
+      },
+      "blocked": false
+    },
+    {
+      "id": "usr-estudante-1",
+      "name": "Ana Beatriz Ferreira",
+      "email": "ana.ferreira@gmail.com",
+      "password": "scrypt:76956a57394216f35d7e937891af036e:a3b00cf9681da9cd0f109a95e620abc81b19fd204b572ed6709ba97c86a77f50108c2f0e2bf89737d7dbaae359ec2b2615f321f719f69316ee106aee1fd5c6c9",
+      "matriculaOrCpf": "20241030400125",
+      "birthDate": "2004-03-22",
+      "role": "estudante",
+      "roleTitle": "Estudante — Bacharelado em Sistemas de Informação",
+      "bio": "Graduanda em Sistemas de Informação e bolsista de Iniciação Científica (PIBIC/IFCE). Entusiasta de IA aplicada à educação.",
+      "followers": [],
+      "following": [
+        "usr-docente-1",
+        "usr-docente-2"
+      ],
+      "showCreatedEventsOnProfile": true,
+      "notificationPrefs": {
+        "receiveNotifications": true,
+        "eventCreated": true,
+        "eventReminder": true
+      },
+      "blocked": false
+    },
+    {
+      "id": "usr-externo-1",
+      "name": "João Pedro Vasconcelos",
+      "email": "joao.vasconcelos@gmail.com",
+      "password": "scrypt:c9e54dd3aff98b8348053195337d755a:f43eb7a35173c1b78cff133fa7ebf55281f438024ec68eba8983a5971c91b902855cbcc96febe3c50710301fd6ce156f074ed48b9d96f4ea9581ea9584834860",
+      "matriculaOrCpf": "048.392.113-90",
+      "birthDate": "1999-08-19",
+      "role": "externo",
+      "roleTitle": "Participante Externo — Comunidade Regional",
+      "bio": "Desenvolvedor full-stack egresso e participante ativo dos simpósios e minicursos abertos à comunidade no Campus Cedro.",
+      "followers": [],
+      "following": [
+        "usr-docente-1"
+      ],
+      "showCreatedEventsOnProfile": false,
+      "notificationPrefs": {
+        "receiveNotifications": true,
+        "eventCreated": false,
+        "eventReminder": true
+      },
+      "blocked": false
+    }
+  ],
+  "events": [
+    {
+      "id": "evt-1",
+      "organizerId": "usr-docente-1",
+      "organizerName": "Prof. Dr. Carlos Eduardo Lima",
+      "organizerRoleTitle": "Docente — Sistemas de Informação",
+      "title": "XI Semana de Tecnologia e Inovação do IFCE Cedro",
+      "description": "Encontro acadêmico anual reunindo palestras, sessões técnicas de artigos científicos e oficinas práticas de prototipagem eletrônica, inteligência artificial e desenvolvimento web sustentável.",
+      "bannerUrl": "/src/assets/images/poster_tecnologia_ifce_1794858693692.jpg",
+      "location": "Auditório Principal — Bloco A",
+      "startDate": "2026-11-24",
+      "endDate": "2026-11-26",
+      "startTime": "08:30",
+      "endTime": "17:30",
+      "maxSlots": 120,
+      "registeredCount": 84,
+      "eventType": "Palestra",
+      "status": "Em andamento",
+      "institutionalOnly": false,
+      "generateCertificate": true,
+      "workloadHours": 20,
+      "eventCode": "Q87OP",
+      "createdAt": "2026-10-15T10:00:00.000Z",
+      "subevents": [
+        {
+          "id": "sub-101",
+          "title": "Oficina de Prototipagem com Arduino e IoT",
+          "description": "Sessão prática de sensores ambientais conectados à nuvem.",
+          "bannerUrl": "/src/assets/images/poster_oficina_robotica_1794858694324.jpg",
+          "location": "Laboratório de Hardware 02",
+          "startDate": "2026-11-25",
+          "endDate": "2026-11-25",
+          "startTime": "14:00",
+          "endTime": "17:00",
+          "maxSlots": 30,
+          "registeredCount": 24,
+          "eventType": "Oficina",
+          "institutionalOnly": true,
+          "generateCertificate": true,
+          "workloadHours": 4
+        }
+      ]
+    },
+    {
+      "id": "evt-2",
+      "organizerId": "usr-docente-2",
+      "organizerName": "Profa. Ma. Mariana Albuquerque",
+      "organizerRoleTitle": "Docente — Núcleo de Saúde e Humanidades",
+      "title": "Palestra de Higiene, Saúde Mental e Autocuidado Acadêmico",
+      "description": "Roda orientativa sobre prevenção à saúde no ambiente escolar, ergonomia nos estudos e estratégias práticas de equilíbrio emocional durante o semestre letivo.",
+      "bannerUrl": "/src/assets/images/poster_saude_bemestar_1794858693824.jpg",
+      "location": "Auditório Principal",
+      "startDate": "2026-11-18",
+      "endDate": "2026-11-18",
+      "startTime": "14:00",
+      "endTime": "16:00",
+      "maxSlots": 60,
+      "registeredCount": 48,
+      "eventType": "Palestra",
+      "status": "Em breve",
+      "institutionalOnly": false,
+      "generateCertificate": true,
+      "workloadHours": 2,
+      "eventCode": null,
+      "createdAt": "2026-11-01T09:00:00.000Z",
+      "subevents": []
+    },
+    {
+      "id": "evt-3",
+      "organizerId": "usr-docente-2",
+      "organizerName": "Profa. Ma. Mariana Albuquerque",
+      "organizerRoleTitle": "Docente — Núcleo de Saúde e Humanidades",
+      "title": "Vozes do Campus: Literatura, Diversidade e Cultura Regional",
+      "description": "Roda de conversa interdisciplinar com estudantes, docentes e escritores do Cariri e Centro-Sul sobre memória cultural, inclusão e produção literária contemporânea.",
+      "bannerUrl": "/src/assets/images/poster_vozes_cultura_1794858693933.jpg",
+      "location": "Biblioteca Central — Sala Multimeios",
+      "startDate": "2026-11-20",
+      "endDate": "2026-11-20",
+      "startTime": "15:30",
+      "endTime": "17:30",
+      "maxSlots": 45,
+      "registeredCount": 31,
+      "eventType": "Roda de conversa",
+      "status": "Em breve",
+      "institutionalOnly": false,
+      "generateCertificate": true,
+      "workloadHours": 3,
+      "eventCode": null,
+      "createdAt": "2026-11-02T14:20:00.000Z",
+      "subevents": []
+    },
+    {
+      "id": "evt-4",
+      "organizerId": "usr-docente-1",
+      "organizerName": "Prof. Dr. Carlos Eduardo Lima",
+      "organizerRoleTitle": "Docente — Sistemas de Informação",
+      "title": "Minicurso de Robótica Educacional e Automação Industrial",
+      "description": "Introdução à cinemática de manipuladores robóticos, controle PID embarcado e programação em C++ para sistemas mecatrônicos.",
+      "bannerUrl": "/src/assets/images/poster_oficina_robotica_1794858694324.jpg",
+      "location": "Laboratório de Automação — Bloco C",
+      "startDate": "2026-11-28",
+      "endDate": "2026-11-29",
+      "startTime": "08:00",
+      "endTime": "12:00",
+      "maxSlots": 25,
+      "registeredCount": 19,
+      "eventType": "Mini curso",
+      "status": "Em breve",
+      "institutionalOnly": true,
+      "generateCertificate": true,
+      "workloadHours": 8,
+      "eventCode": null,
+      "createdAt": "2026-11-04T11:10:00.000Z",
+      "subevents": []
+    },
+    {
+      "id": "evt-5",
+      "organizerId": "usr-docente-1",
+      "organizerName": "Prof. Dr. Carlos Eduardo Lima",
+      "organizerRoleTitle": "Docente — Sistemas de Informação",
+      "title": "Seminário de Pesquisa, Extensão e Energias Renováveis",
+      "description": "Apresentação de artigos e relatórios de iniciação científica sobre sistemas fotovoltaicos, eficiência energética no semiárido e tecnologias sociais.",
+      "bannerUrl": "/src/assets/images/poster_extensao_pesquisa_1794858694286.jpg",
+      "location": "Auditório de Engenharia — Bloco B",
+      "startDate": "2026-10-12",
+      "endDate": "2026-10-13",
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "maxSlots": 90,
+      "registeredCount": 88,
+      "eventType": "Palestra",
+      "status": "Finalizado",
+      "institutionalOnly": false,
+      "generateCertificate": true,
+      "workloadHours": 12,
+      "eventCode": "CED26",
+      "createdAt": "2026-09-20T08:00:00.000Z",
+      "subevents": []
+    },
+    {
+      "id": "evt-6",
+      "organizerId": "usr-docente-2",
+      "organizerName": "Profa. Ma. Mariana Albuquerque",
+      "organizerRoleTitle": "Docente — Núcleo de Saúde e Humanidades",
+      "title": "Oficina de Escrita Científica e Normas ABNT para Artigos",
+      "description": "Workshop prático para estruturar resumos expandidos, artigos completos e citações científicas para periódicos e anais de congressos.",
+      "bannerUrl": "/src/assets/images/poster_extensao_pesquisa_1794858694286.jpg",
+      "location": "Sala 04 — Pós-Graduação",
+      "startDate": "2026-11-22",
+      "endDate": "2026-11-22",
+      "startTime": "09:00",
+      "endTime": "12:00",
+      "maxSlots": 40,
+      "registeredCount": 27,
+      "eventType": "Oficina",
+      "status": "Em breve",
+      "institutionalOnly": true,
+      "generateCertificate": true,
+      "workloadHours": 4,
+      "eventCode": null,
+      "createdAt": "2026-11-05T15:00:00.000Z",
+      "subevents": []
+    },
+    {
+      "id": "evt-7",
+      "organizerId": "usr-docente-2",
+      "organizerName": "Profa. Ma. Mariana Albuquerque",
+      "organizerRoleTitle": "Docente — Núcleo de Saúde e Humanidades",
+      "title": "Mostra Integrada de Projetos Culturais e Esportivos",
+      "description": "Exposição aberta de grupos artísticos, projetos de extensão comunitária e torneios estudantis integrados ao calendário acadêmico.",
+      "bannerUrl": "/src/assets/images/poster_vozes_cultura_1794858693933.jpg",
+      "location": "Ginásio Poliesportivo — IFCE Cedro",
+      "startDate": "2026-12-03",
+      "endDate": "2026-12-03",
+      "startTime": "13:30",
+      "endTime": "17:30",
+      "maxSlots": 150,
+      "registeredCount": 64,
+      "eventType": "Outros",
+      "status": "Em breve",
+      "institutionalOnly": false,
+      "generateCertificate": true,
+      "workloadHours": 4,
+      "eventCode": null,
+      "createdAt": "2026-11-08T12:00:00.000Z",
+      "subevents": []
+    }
+  ],
+  "registrations": [
+    {
+      "id": "reg-1",
+      "eventId": "evt-1",
+      "userId": "usr-estudante-1",
+      "status": "cadastrado",
+      "registeredAt": "2026-11-10T10:00:00.000Z"
+    },
+    {
+      "id": "reg-2",
+      "eventId": "evt-5",
+      "userId": "usr-estudante-1",
+      "status": "presente",
+      "checkedInCode": "CED26",
+      "certificateCode": "SEA-IFCE-2026-CED26-8410",
+      "registeredAt": "2026-10-01T08:30:00.000Z",
+      "checkedInAt": "2026-10-12T09:15:00.000Z"
+    },
+    {
+      "id": "reg-3",
+      "eventId": "evt-2",
+      "userId": "usr-docente-1",
+      "status": "cadastrado",
+      "registeredAt": "2026-11-11T14:00:00.000Z"
+    },
+    {
+      "id": "reg-4",
+      "eventId": "evt-5",
+      "userId": "usr-docente-1",
+      "status": "presente",
+      "checkedInCode": "CED26",
+      "certificateCode": "SEA-IFCE-2026-CED26-1102",
+      "registeredAt": "2026-10-01T11:00:00.000Z",
+      "checkedInAt": "2026-10-12T09:20:00.000Z"
+    },
+    {
+      "id": "reg-5",
+      "eventId": "evt-5",
+      "userId": "usr-externo-1",
+      "status": "presente",
+      "checkedInCode": "CED26",
+      "certificateCode": "SEA-IFCE-2026-CED26-5592",
+      "registeredAt": "2026-10-02T16:00:00.000Z",
+      "checkedInAt": "2026-10-12T09:25:00.000Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "not-1",
+      "category": "Docentes",
+      "senderName": "Profa. Mariana Albuquerque",
+      "senderRole": "Docente",
+      "title": "Palestra de Higiene e Autocuidado",
+      "message": "haverá um atraso de 10 minutos na abertura do auditório, aguardem.",
+      "timestamp": "16 de Nov às 13:40",
+      "read": false,
+      "type": "info"
+    },
+    {
+      "id": "not-2",
+      "category": "Eventos",
+      "senderName": "Sistema SEA",
+      "title": "Lembrete de início",
+      "message": "O evento \"XI Semana de Tecnologia e Inovação\" está com credenciamento aberto (código Q87OP).",
+      "timestamp": "16 de Nov às 13:10",
+      "read": false,
+      "type": "reminder"
+    }
+  ],
+  "pendingVerifications": {
+    "teste.verificacao@gmail.com": {
+      "code": "89734",
+      "user": {
+        "id": "usr-1795477469256",
+        "name": "Teste Gmail",
+        "email": "teste.verificacao@gmail.com",
+        "password": "scrypt:4d5107932f03a15574c469c978b8971f:0e4123ccdc0e11d1d6bb224a674b3ffdb12f799fdfb7d39cfc1845a411de500719f67719d7b6558177ac0a0ab41e7ed9875d640bb6fa6f196c77d9947a7107e2",
+        "matriculaOrCpf": "20260001",
+        "birthDate": "2000-01-01",
+        "role": "estudante",
+        "roleTitle": "Estudante — IFCE Campus Cedro",
+        "bio": "Membro da comunidade acadêmica do SEA IFCE.",
+        "blocked": false,
+        "followers": [],
+        "following": [],
+        "showCreatedEventsOnProfile": true,
+        "notificationPrefs": {
+          "receiveNotifications": true,
+          "eventCreated": true,
+          "eventReminder": true
+        }
+      }
+    }
+  }
+}
